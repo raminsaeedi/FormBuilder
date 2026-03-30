@@ -1,6 +1,7 @@
 import { FieldCatalogItem } from "../types/form";
 
 export const fieldCatalog: FieldCatalogItem[] = [
+  // ── Basic ──────────────────────────────────
   {
     type: "text",
     title: "Text input",
@@ -10,7 +11,7 @@ export const fieldCatalog: FieldCatalogItem[] = [
   {
     type: "email",
     title: "Email",
-    description: "Dedicated email field with familiar expectations.",
+    description: "Dedicated email field with format validation hint.",
     category: "Basic",
   },
   {
@@ -20,15 +21,34 @@ export const fieldCatalog: FieldCatalogItem[] = [
     category: "Basic",
   },
   {
+    type: "password",
+    title: "Password",
+    description: "Masked input for credentials or secret values.",
+    category: "Basic",
+  },
+  {
+    type: "number",
+    title: "Number",
+    description: "Numeric-only input for quantities, ages or amounts.",
+    category: "Basic",
+  },
+  {
+    type: "date",
+    title: "Date",
+    description: "Calendar date picker for scheduling or date-of-birth.",
+    category: "Basic",
+  },
+  {
     type: "textarea",
     title: "Textarea",
     description: "Long-form response area for notes and explanations.",
     category: "Basic",
   },
+  // ── Choice ─────────────────────────────────
   {
     type: "select",
     title: "Select",
-    description: "Single selection from a compact list of options.",
+    description: "Single selection from a compact dropdown list.",
     category: "Choice",
   },
   {

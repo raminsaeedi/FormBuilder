@@ -134,11 +134,13 @@ export const analyzeForm = (form: FormDefinition): AnalysisResult => {
 
   return {
     score,
+    issues: warnings,
     warnings,
     summary: {
       requiredFields,
       optionalFields,
       longLabels,
+      totalFields: form.fields.length,
     },
   };
 };
