@@ -28,6 +28,12 @@ interface BuilderState {
    */
   previewMode: boolean;
 
+  /**
+   * The viewport simulation mode used in the preview panel.
+   * "desktop" renders a two-column grid; "mobile" constrains to 390 px single-column.
+   */
+  viewportMode: "desktop" | "mobile";
+
   // ── Analysis ───────────────────────────────
   /**
    * The latest UX analysis result for the current form.
@@ -71,6 +77,9 @@ interface BuilderState {
 
   /** Explicitly set preview mode on or off. */
   setPreviewMode: (active: boolean) => void;
+
+  /** Set the viewport simulation mode for the preview panel. */
+  setViewportMode: (mode: "desktop" | "mobile") => void;
 }
 
 // ─────────────────────────────────────────────
@@ -87,6 +96,16 @@ const cloneTemplate = (template: FormDefinition): FormDefinition => ({
 
 const createId = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
+
+const buildStateFromForm = (
+  form: FormDefinition,
+  overrides?: Partial<Pick<BuilderState, "selectedFieldId" | "previewMode">>,
+) => ({
+  form,
+  selectedFieldId: overrides?.selectedFieldId ?? form.fields[0]?.id ?? null,
+  previewMode: overrides?.previewMode ?? false,
+  analysisResult: resolveAnalysis(form),
+});
 
 /**
  * Return the best available analysis for a form:
@@ -186,35 +205,21 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   form: initialForm,
   selectedFieldId: initialForm.fields[0]?.id ?? null,
   previewMode: false,
+  viewportMode: "desktop",
   analysisResult: resolveAnalysis(initialForm),
 
   // ── Form-level actions ──────────────────────
 
-  setForm: (form) =>
-    set({
-      form,
-      selectedFieldId: form.fields[0]?.id ?? null,
-      analysisResult: resolveAnalysis(form),
-    }),
+  setForm: (form) => set(buildStateFromForm(form, { previewMode: false })),
 
   loadTemplate: (template) => {
     const form = cloneTemplate(template);
-    set({
-      form,
-      selectedFieldId: form.fields[0]?.id ?? null,
-      previewMode: false,
-      analysisResult: resolveAnalysis(form),
-    });
+    set(buildStateFromForm(form));
   },
 
   resetToPrimaryTemplate: () => {
     const form = cloneTemplate(templates[0]);
-    set({
-      form,
-      selectedFieldId: form.fields[0]?.id ?? null,
-      previewMode: false,
-      analysisResult: resolveAnalysis(form),
-    });
+    set(buildStateFromForm(form));
   },
 
   // ── Field selection ─────────────────────────
@@ -322,4 +327,6 @@ export const useBuilderStore = create<BuilderState>((set) => ({
     set((state) => ({ previewMode: !state.previewMode })),
 
   setPreviewMode: (active) => set({ previewMode: active }),
+
+  setViewportMode: (mode: "desktop" | "mobile") => set({ viewportMode: mode }),
 }));

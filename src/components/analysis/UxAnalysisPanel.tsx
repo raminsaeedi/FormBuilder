@@ -27,6 +27,7 @@ interface SeverityConfig {
   color: "error" | "warning" | "info";
   muiColor: string;
   bgColor: string;
+  borderColor: string;
   icon: ReactNode;
   label: string;
   order: number;
@@ -36,7 +37,8 @@ const severityConfig: Record<IssueSeverity, SeverityConfig> = {
   critical: {
     color: "error",
     muiColor: "#dc2626",
-    bgColor: alpha("#dc2626", 0.06),
+    bgColor: alpha("#dc2626", 0.04),
+    borderColor: alpha("#dc2626", 0.2),
     icon: <ErrorOutlineRoundedIcon fontSize="small" />,
     label: "Critical",
     order: 0,
@@ -44,7 +46,8 @@ const severityConfig: Record<IssueSeverity, SeverityConfig> = {
   warning: {
     color: "warning",
     muiColor: "#d97706",
-    bgColor: alpha("#d97706", 0.06),
+    bgColor: alpha("#d97706", 0.04),
+    borderColor: alpha("#d97706", 0.2),
     icon: <WarningAmberRoundedIcon fontSize="small" />,
     label: "Warning",
     order: 1,
@@ -52,14 +55,15 @@ const severityConfig: Record<IssueSeverity, SeverityConfig> = {
   info: {
     color: "info",
     muiColor: "#0891b2",
-    bgColor: alpha("#0891b2", 0.06),
+    bgColor: alpha("#0891b2", 0.04),
+    borderColor: alpha("#0891b2", 0.2),
     icon: <InfoOutlinedIcon fontSize="small" />,
-    label: "Info",
+    label: "Suggestion",
     order: 2,
   },
 };
 
-// ─────────────────────────────────────────────
+// ─────────────────────���───────────────────────
 // Score bar
 // ─────────────────────────────────────────────
 
@@ -68,36 +72,37 @@ function ScoreBar({ score }: { score: number }) {
 
   const scoreLabel =
     score >= 80
-      ? "Good"
+      ? "Looking good — minor polish may still help"
       : score >= 55
-        ? "Needs improvement"
-        : "Poor — action required";
+        ? "Room to improve — review the issues below"
+        : "High friction risk — address critical issues first";
+
+  const scoreColor =
+    score >= 80 ? "success.main" : score >= 55 ? "warning.main" : "error.main";
 
   return (
-    <Box>
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: "12px",
+        border: "1px solid",
+        borderColor: "divider",
+        bgcolor: alpha("#f8faff", 0.8),
+      }}
+    >
       <Stack
         direction="row"
         justifyContent="space-between"
-        alignItems="baseline"
-        sx={{ mb: 1 }}
+        alignItems="center"
+        sx={{ mb: 1.25 }}
       >
-        <Stack spacing={0.25}>
-          <Typography variant="subtitle2">Form clarity score</Typography>
+        <Stack spacing={0.2}>
+          <Typography variant="subtitle2">Overall UX score</Typography>
           <Typography variant="caption" color="text.secondary">
             {scoreLabel}
           </Typography>
         </Stack>
-        <Typography
-          variant="h5"
-          fontWeight={800}
-          color={
-            score >= 80
-              ? "success.main"
-              : score >= 55
-                ? "warning.main"
-                : "error.main"
-          }
-        >
+        <Typography variant="h5" fontWeight={800} color={scoreColor}>
           {score}
           <Typography
             component="span"
@@ -114,9 +119,9 @@ function ScoreBar({ score }: { score: number }) {
         value={score}
         color={barColor}
         sx={{
-          height: 8,
+          height: 7,
           borderRadius: 8,
-          bgcolor: "rgba(148, 163, 184, 0.15)",
+          bgcolor: "rgba(148, 163, 184, 0.12)",
         }}
       />
     </Box>
@@ -183,91 +188,105 @@ function IssueCard({ issue, fieldLabel }: IssueCardProps) {
   return (
     <Box
       sx={{
-        p: 1.5,
+        display: "flex",
+        borderRadius: "10px",
         border: "1px solid",
-        borderColor: alpha(cfg.muiColor, 0.25),
-        borderRadius: 2.5,
+        borderColor: cfg.borderColor,
         bgcolor: cfg.bgColor,
+        overflow: "hidden",
       }}
     >
-      <Stack spacing={0.75}>
-        {/* Header: title + severity chip */}
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="flex-start"
-          spacing={1}
-        >
+      {/* Left accent bar */}
+      <Box
+        sx={{
+          width: 3,
+          flexShrink: 0,
+          bgcolor: cfg.muiColor,
+          borderRadius: "10px 0 0 10px",
+        }}
+      />
+
+      {/* Content */}
+      <Box sx={{ p: 1.5, flex: 1, minWidth: 0 }}>
+        <Stack spacing={0.75}>
+          {/* Header: title + severity chip */}
           <Stack
             direction="row"
-            spacing={0.75}
-            alignItems="center"
-            sx={{ minWidth: 0 }}
+            justifyContent="space-between"
+            alignItems="flex-start"
+            spacing={1}
           >
-            <Box
+            <Stack
+              direction="row"
+              spacing={0.75}
+              alignItems="center"
+              sx={{ minWidth: 0 }}
+            >
+              <Box
+                sx={{
+                  color: cfg.muiColor,
+                  display: "inline-flex",
+                  flexShrink: 0,
+                }}
+              >
+                {cfg.icon}
+              </Box>
+              <Typography
+                variant="subtitle2"
+                sx={{ lineHeight: 1.3, wordBreak: "break-word" }}
+              >
+                {issue.title}
+              </Typography>
+            </Stack>
+            <Chip
+              label={cfg.label}
+              size="small"
+              color={cfg.color}
               sx={{
-                color: cfg.muiColor,
-                display: "inline-flex",
+                flexShrink: 0,
+                height: 18,
+                fontSize: "0.65rem",
+                fontWeight: 700,
+              }}
+            />
+          </Stack>
+
+          {/* Field reference */}
+          {fieldLabel && (
+            <Typography variant="caption" color="text.disabled">
+              Affects field: <strong>{fieldLabel}</strong>
+            </Typography>
+          )}
+
+          {/* Description */}
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ lineHeight: 1.5 }}
+          >
+            {issue.description}
+          </Typography>
+
+          {/* Recommendation */}
+          <Stack direction="row" spacing={0.75} alignItems="flex-start">
+            <LightbulbOutlinedIcon
+              sx={{
+                fontSize: "0.85rem",
+                color: "text.disabled",
+                mt: 0.2,
                 flexShrink: 0,
               }}
-            >
-              {cfg.icon}
-            </Box>
+            />
             <Typography
-              variant="subtitle2"
-              sx={{ lineHeight: 1.3, wordBreak: "break-word" }}
+              variant="caption"
+              color="text.secondary"
+              sx={{ lineHeight: 1.4 }}
             >
-              {issue.title}
+              {issue.recommendation}
             </Typography>
           </Stack>
-          <Chip
-            label={cfg.label}
-            size="small"
-            color={cfg.color}
-            sx={{
-              flexShrink: 0,
-              height: 20,
-              fontSize: "0.68rem",
-              fontWeight: 600,
-            }}
-          />
         </Stack>
-
-        {/* Field reference */}
-        {fieldLabel && (
-          <Typography variant="caption" color="text.disabled">
-            Field: <strong>{fieldLabel}</strong>
-          </Typography>
-        )}
-
-        {/* Description */}
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{ lineHeight: 1.5 }}
-        >
-          {issue.description}
-        </Typography>
-
-        {/* Recommendation */}
-        <Stack direction="row" spacing={0.75} alignItems="flex-start">
-          <LightbulbOutlinedIcon
-            sx={{
-              fontSize: "0.9rem",
-              color: "text.disabled",
-              mt: 0.15,
-              flexShrink: 0,
-            }}
-          />
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ lineHeight: 1.4 }}
-          >
-            {issue.recommendation}
-          </Typography>
-        </Stack>
-      </Stack>
+      </Box>
     </Box>
   );
 }
@@ -284,19 +303,20 @@ function NoIssues() {
       alignItems="center"
       sx={{
         p: 1.75,
-        borderRadius: 3,
-        bgcolor: alpha("#0f766e", 0.07),
+        borderRadius: "10px",
+        bgcolor: alpha("#0f766e", 0.06),
         border: "1px solid",
-        borderColor: alpha("#0f766e", 0.2),
+        borderColor: alpha("#0f766e", 0.18),
       }}
     >
       <CheckCircleOutlineRoundedIcon sx={{ color: "#0f766e", flexShrink: 0 }} />
       <Box>
         <Typography variant="subtitle2" sx={{ color: "#0f766e" }}>
-          No issues detected
+          No issues found — great work!
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          This form looks clean. Keep labels short and help texts informative.
+          This form passes all heuristic checks. Keep labels concise and help
+          texts informative as you add more fields.
         </Typography>
       </Box>
     </Stack>
@@ -318,7 +338,7 @@ function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
   const cfg = severityConfig[severity];
 
   return (
-    <Stack spacing={1}>
+    <Stack spacing={0.75}>
       {/* Group header */}
       <Stack direction="row" alignItems="center" spacing={1}>
         <Box sx={{ color: cfg.muiColor, display: "inline-flex" }}>
@@ -331,7 +351,7 @@ function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
           {cfg.label}
         </Typography>
         <Box
-          sx={{ flex: 1, height: "1px", bgcolor: alpha(cfg.muiColor, 0.2) }}
+          sx={{ flex: 1, height: "1px", bgcolor: alpha(cfg.muiColor, 0.18) }}
         />
         <Typography
           variant="caption"
@@ -342,7 +362,7 @@ function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
       </Stack>
 
       {/* Issue cards */}
-      <Stack spacing={0.75}>
+      <Stack spacing={0.6}>
         {issues.map((issue) => (
           <IssueCard
             key={issue.id}
@@ -365,26 +385,22 @@ function UxAnalysisPanel() {
   const analysis = useBuilderStore((s) => s.analysisResult);
   const fields = useBuilderStore((s) => s.form.fields);
 
-  // Build a lookup map: fieldId → field label (for issue cards)
-  const fieldLabelById: Record<string, string> = {};
-  fields.forEach((f) => {
-    fieldLabelById[f.id] = f.label || `Unnamed (${f.type})`;
-  });
+  const fieldLabelById = Object.fromEntries(
+    fields.map((field) => [field.id, field.label || `Unnamed (${field.type})`]),
+  ) as Record<string, string>;
 
-  // Group issues by severity in display order
   const criticalIssues = analysis.issues.filter(
     (i) => i.severity === "critical",
   );
   const warningIssues = analysis.issues.filter((i) => i.severity === "warning");
   const infoIssues = analysis.issues.filter((i) => i.severity === "info");
-
   const totalIssues = analysis.issues.length;
 
   return (
     <PanelSection
       eyebrow="Analysis"
       title="UX validation"
-      description="Heuristic checks that surface usability risk before users encounter it."
+      description="Heuristic checks that surface usability risk before your users encounter it."
       actions={
         <Chip
           icon={<InsightsRoundedIcon />}
@@ -418,26 +434,35 @@ function UxAnalysisPanel() {
 
         <Divider />
 
-        {/* ── Issues section ── */}
-        <Stack spacing={0.5}>
+        {/* ── Issues section header ── */}
+        <Stack spacing={0.4}>
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
           >
-            <Typography variant="subtitle2">Issues</Typography>
+            <Stack spacing={0.1}>
+              <Typography variant="subtitle2">Detected issues</Typography>
+              {totalIssues > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  Fix critical issues first — they have the highest impact on
+                  completion rates.
+                </Typography>
+              )}
+            </Stack>
             {totalIssues > 0 && (
               <Chip
-                label={`${totalIssues} found`}
+                label={`${totalIssues} issue${totalIssues !== 1 ? "s" : ""}`}
                 size="small"
                 color={criticalIssues.length > 0 ? "error" : "warning"}
                 variant="outlined"
-                sx={{ height: 20, fontSize: "0.68rem" }}
+                sx={{ height: 20, fontSize: "0.65rem", flexShrink: 0, ml: 1 }}
               />
             )}
           </Stack>
         </Stack>
 
+        {/* ── Issues list or success state ── */}
         {totalIssues === 0 ? (
           <NoIssues />
         ) : (

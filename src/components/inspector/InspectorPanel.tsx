@@ -21,12 +21,12 @@ import {
   Typography,
 } from "@mui/material";
 import PanelSection from "../shared/PanelSection";
-import { fieldTypeMeta } from "../builder/BuilderFieldCard";
+import { fieldTypeMeta } from "../shared/fieldMeta";
 import { useBuilderStore } from "../../store/builderStore";
 import { FieldOption, FieldWidth } from "../../types/form";
 
 // ─────────────────────────────────────────────
-// Helper
+// Helpers
 // ─────────────────────────────────────────────
 
 const createId = (prefix: string) =>
@@ -39,8 +39,32 @@ const slugify = (text: string) =>
     .replace(/[^a-z0-9-]/g, "");
 
 // ─────────────────────────────────────────────
-// No-selection empty state
+// Section heading
 // ─────────────────────────────────────────────
+
+function SectionHeading({ children }: { children: string }) {
+  return (
+    <Box
+      sx={{
+        pb: 0.75,
+        borderBottom: "1px solid",
+        borderColor: "divider",
+      }}
+    >
+      <Typography
+        variant="overline"
+        color="text.secondary"
+        sx={{ letterSpacing: "0.1em" }}
+      >
+        {children}
+      </Typography>
+    </Box>
+  );
+}
+
+// ─────────────────────────────────────────────
+// No-selection empty state
+// ──────────────────────────────────��──────────
 
 function NoSelection() {
   return (
@@ -51,8 +75,8 @@ function NoSelection() {
         textAlign: "center",
         border: "1.5px dashed",
         borderColor: "divider",
-        borderRadius: 3,
-        bgcolor: "grey.50",
+        borderRadius: "12px",
+        bgcolor: alpha("#f8faff", 0.8),
       }}
     >
       <Box
@@ -71,11 +95,15 @@ function NoSelection() {
         <MouseRoundedIcon />
       </Box>
       <Typography variant="subtitle2" gutterBottom>
-        No field selected
+        Select a field to inspect
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ lineHeight: 1.6, maxWidth: 220, mx: "auto" }}
+      >
         Click any field in the canvas to edit its label, placeholder, help text,
-        width and required state.
+        width, and required state.
       </Typography>
     </Box>
   );
@@ -123,10 +151,10 @@ function OptionsEditor({
     <Stack spacing={1.25}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="subtitle2" color="text.secondary">
-          Options
+          Answer choices
         </Typography>
         <Chip
-          label={`${options.length} option${options.length !== 1 ? "s" : ""}`}
+          label={`${options.length} choice${options.length !== 1 ? "s" : ""}`}
           size="small"
           variant="outlined"
         />
@@ -135,20 +163,27 @@ function OptionsEditor({
       {options.map((option, index) => (
         <Stack key={option.id} direction="row" spacing={1} alignItems="center">
           <TextField
-            label={`Option ${index + 1}`}
+            label={`Choice ${index + 1}`}
             value={option.label}
             onChange={(e) => handleLabelChange(option.id, e.target.value)}
             size="small"
             fullWidth
           />
-          <Tooltip title="Remove option" arrow>
+          <Tooltip
+            title={
+              options.length <= 1
+                ? "At least one choice is required"
+                : "Remove this choice"
+            }
+            arrow
+          >
             <span>
               <IconButton
                 size="small"
                 color="error"
                 disabled={options.length <= 1}
                 onClick={() => handleDelete(option.id)}
-                aria-label={`Remove option ${index + 1}`}
+                aria-label={`Remove choice ${index + 1}`}
               >
                 <DeleteOutlineRoundedIcon fontSize="small" />
               </IconButton>
@@ -164,7 +199,7 @@ function OptionsEditor({
         onClick={handleAdd}
         sx={{ alignSelf: "flex-start" }}
       >
-        Add option
+        Add choice
       </Button>
     </Stack>
   );
@@ -187,7 +222,7 @@ function InspectorPanel() {
     <PanelSection
       eyebrow="Inspector"
       title="Field settings"
-      description="Edit the selected field's content and layout properties."
+      description="Fine-tune the selected field's content, layout, and behaviour."
       actions={
         meta && field ? (
           <Chip
@@ -196,7 +231,7 @@ function InspectorPanel() {
                 sx={{
                   display: "inline-flex",
                   color: meta.color,
-                  "& svg": { fontSize: "0.9rem" },
+                  "& svg": { fontSize: "0.85rem" },
                 }}
               >
                 {meta.icon}
@@ -207,14 +242,14 @@ function InspectorPanel() {
             sx={{
               bgcolor: alpha(meta.color, 0.1),
               color: meta.color,
-              fontWeight: 600,
+              fontWeight: 700,
               border: "none",
             }}
           />
         ) : (
           <Chip
             icon={<TuneRoundedIcon />}
-            label="No selection"
+            label="Nothing selected"
             size="small"
             variant="outlined"
           />
@@ -222,16 +257,10 @@ function InspectorPanel() {
       }
     >
       {field ? (
-        <Stack spacing={2.5}>
+        <Stack spacing={2.25}>
           {/* ── Section: Content ── */}
-          <Stack spacing={1.75}>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              sx={{ letterSpacing: "0.1em" }}
-            >
-              Content
-            </Typography>
+          <Stack spacing={1.5}>
+            <SectionHeading>Content</SectionHeading>
 
             {/* Label */}
             <TextField
@@ -240,7 +269,11 @@ function InspectorPanel() {
               onChange={(e) => updateField(field.id, { label: e.target.value })}
               fullWidth
               size="small"
-              helperText="Visible above the input — keep it short and clear."
+              helperText={
+                !field.label.trim()
+                  ? "A label is required — users need to know what to enter."
+                  : "Shown above the input. Keep it short and specific."
+              }
               error={!field.label.trim()}
               FormHelperTextProps={{ sx: { mx: 0 } }}
             />
@@ -255,7 +288,7 @@ function InspectorPanel() {
                 }
                 fullWidth
                 size="small"
-                helperText="Example value shown inside the empty input."
+                helperText="Example value shown inside the empty input. Avoid repeating the label."
                 FormHelperTextProps={{ sx: { mx: 0 } }}
               />
             )}
@@ -271,7 +304,7 @@ function InspectorPanel() {
               size="small"
               multiline
               minRows={2}
-              helperText="Optional guidance shown below the input."
+              helperText="Optional guidance shown below the input. Use it to clarify format or intent."
               FormHelperTextProps={{ sx: { mx: 0 } }}
             />
           </Stack>
@@ -279,26 +312,22 @@ function InspectorPanel() {
           <Divider />
 
           {/* ── Section: Layout & behaviour ── */}
-          <Stack spacing={1.75}>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              sx={{ letterSpacing: "0.1em" }}
-            >
-              Layout & behaviour
-            </Typography>
+          <Stack spacing={1.5}>
+            <SectionHeading>Layout & behaviour</SectionHeading>
 
             <Stack
               direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              alignItems="center"
+              spacing={1.5}
+              alignItems={{ sm: "center" }}
             >
               {/* Width */}
               <FormControl fullWidth size="small">
-                <InputLabel id={`width-label-${field.id}`}>Width</InputLabel>
+                <InputLabel id={`width-label-${field.id}`}>
+                  Column width
+                </InputLabel>
                 <Select
                   labelId={`width-label-${field.id}`}
-                  label="Width"
+                  label="Column width"
                   value={field.width}
                   onChange={(e) =>
                     updateField(field.id, {
@@ -306,25 +335,34 @@ function InspectorPanel() {
                     })
                   }
                 >
-                  <MenuItem value="half">Half width</MenuItem>
-                  <MenuItem value="full">Full width</MenuItem>
+                  <MenuItem value="half">Half — side by side</MenuItem>
+                  <MenuItem value="full">Full — spans the row</MenuItem>
                 </Select>
               </FormControl>
 
               {/* Required toggle */}
               <Box sx={{ flexShrink: 0 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={field.required}
-                      onChange={(e) =>
-                        updateField(field.id, { required: e.target.checked })
-                      }
-                      size="small"
-                    />
+                <Tooltip
+                  title={
+                    field.required
+                      ? "Users must fill this field before submitting"
+                      : "Users can skip this field"
                   }
-                  label={<Typography variant="body2">Required</Typography>}
-                />
+                  arrow
+                >
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={field.required}
+                        onChange={(e) =>
+                          updateField(field.id, { required: e.target.checked })
+                        }
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="body2">Required</Typography>}
+                  />
+                </Tooltip>
               </Box>
             </Stack>
           </Stack>
@@ -332,14 +370,8 @@ function InspectorPanel() {
           {/* ── Section: Field type (read-only) ── */}
           <Divider />
 
-          <Stack spacing={1}>
-            <Typography
-              variant="overline"
-              color="text.secondary"
-              sx={{ letterSpacing: "0.1em" }}
-            >
-              Field type
-            </Typography>
+          <Stack spacing={1.25}>
+            <SectionHeading>Field type</SectionHeading>
             <Stack direction="row" spacing={1} alignItems="center">
               {meta && (
                 <Box
@@ -349,7 +381,7 @@ function InspectorPanel() {
                     justifyContent: "center",
                     width: 30,
                     height: 30,
-                    borderRadius: 1.5,
+                    borderRadius: "8px",
                     bgcolor: alpha(meta.color, 0.1),
                     color: meta.color,
                   }}
@@ -368,16 +400,19 @@ function InspectorPanel() {
             </Stack>
           </Stack>
 
-          {/* ── Section: Options (select / radio only) ── */}
+          {/* ── Section: Answer choices (select / radio only) ── */}
           {(field.type === "select" || field.type === "radio") &&
             field.options && (
               <>
                 <Divider />
-                <OptionsEditor
-                  fieldId={field.id}
-                  options={field.options}
-                  onUpdate={(options) => updateField(field.id, { options })}
-                />
+                <Stack spacing={1.25}>
+                  <SectionHeading>Answer choices</SectionHeading>
+                  <OptionsEditor
+                    fieldId={field.id}
+                    options={field.options}
+                    onUpdate={(options) => updateField(field.id, { options })}
+                  />
+                </Stack>
               </>
             )}
         </Stack>

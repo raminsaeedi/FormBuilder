@@ -7,6 +7,7 @@ import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import {
+  alpha,
   Box,
   Button,
   Chip,
@@ -19,7 +20,7 @@ import { templates } from "../../data/mockForm";
 import { useBuilderStore } from "../../store/builderStore";
 
 // ─────────────────────────────────────────────
-// Sub-component: Score badge shown next to the title
+// Sub-component: live UX score badge
 // ─────────────────────────────────────────────
 
 function ScoreBadge() {
@@ -35,7 +36,7 @@ function ScoreBadge() {
     >
       <Chip
         icon={<InsightsRoundedIcon />}
-        label={`UX score ${score}/100`}
+        label={`UX ${score}/100`}
         color={color}
         size="small"
         sx={{ fontWeight: 700, cursor: "default" }}
@@ -49,8 +50,7 @@ function ScoreBadge() {
 // ─────────────────────────────────────────────
 
 function AppHeader() {
-  const formName = useBuilderStore((s) => s.form.name);
-  const fieldCount = useBuilderStore((s) => s.form.fields.length);
+  const form = useBuilderStore((s) => s.form);
   const previewMode = useBuilderStore((s) => s.previewMode);
   const togglePreviewMode = useBuilderStore((s) => s.togglePreviewMode);
   const loadTemplate = useBuilderStore((s) => s.loadTemplate);
@@ -58,33 +58,51 @@ function AppHeader() {
     (s) => s.resetToPrimaryTemplate,
   );
 
+  const formName = form.name;
+  const fieldCount = form.fields.length;
+
   return (
     <Box
       component="header"
       sx={{
         border: "1px solid",
         borderColor: "divider",
-        borderRadius: 4,
-        px: { xs: 2, md: 3 },
-        py: 2.5,
+        borderRadius: "18px",
+        px: { xs: 2.5, md: 3 },
+        py: { xs: 2.5, md: 3 },
         bgcolor: "background.paper",
-        boxShadow: "0 24px 80px rgba(15, 23, 42, 0.06)",
+        boxShadow: "0 2px 16px rgba(15, 23, 42, 0.05)",
+        overflow: "hidden",
+        position: "relative",
+        // Subtle top accent stripe
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background:
+            "linear-gradient(90deg, #2563eb 0%, #0891b2 50%, #0f766e 100%)",
+          borderRadius: "18px 18px 0 0",
+        },
       }}
     >
       <Stack
         direction={{ xs: "column", lg: "row" }}
-        spacing={2}
+        spacing={3}
         justifyContent="space-between"
         alignItems={{ xs: "flex-start", lg: "center" }}
       >
         {/* ── Left: branding + meta ── */}
-        <Stack spacing={1.25}>
+        <Stack spacing={1.5}>
           {/* Status chips */}
           <Stack
             direction="row"
-            spacing={1}
+            spacing={0.75}
             alignItems="center"
             flexWrap="wrap"
+            useFlexGap
           >
             <Chip
               icon={<AutoAwesomeRoundedIcon />}
@@ -103,18 +121,20 @@ function AppHeader() {
 
           {/* Title */}
           <Box>
-            <Typography variant="h4" fontWeight={700} gutterBottom>
+            <Typography variant="h4" gutterBottom sx={{ mb: 0.25 }}>
               Smart Form Builder
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body2" color="text.secondary">
               UX Validation · Single-page builder dashboard
             </Typography>
           </Box>
 
           {/* Active form name */}
-          <Stack direction="row" spacing={1} alignItems="center">
-            <DashboardCustomizeRoundedIcon color="action" fontSize="small" />
-            <Typography variant="body2" color="text.secondary">
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <DashboardCustomizeRoundedIcon
+              sx={{ fontSize: "0.9rem", color: "text.disabled" }}
+            />
+            <Typography variant="caption" color="text.secondary">
               Active form:{" "}
               <Box component="span" fontWeight={600} color="text.primary">
                 {formName}
@@ -123,11 +143,10 @@ function AppHeader() {
           </Stack>
         </Stack>
 
-        {/* ── Right: action buttons ── */}
-        <Stack spacing={1.5} alignItems={{ xs: "flex-start", lg: "flex-end" }}>
+        {/* ── Right: action groups ── */}
+        <Stack spacing={2} alignItems={{ xs: "flex-start", lg: "flex-end" }}>
           {/* Primary actions */}
           <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-            {/* Preview toggle */}
             <Tooltip
               title={
                 previewMode
@@ -148,11 +167,10 @@ function AppHeader() {
                 onClick={togglePreviewMode}
                 color={previewMode ? "primary" : "inherit"}
               >
-                {previewMode ? "Exit preview" : "Preview"}
+                {previewMode ? "Exit preview" : "Preview form"}
               </Button>
             </Tooltip>
 
-            {/* Analyze — scrolls to the analysis panel */}
             <Tooltip title="Jump to the UX analysis panel" arrow>
               <Button
                 variant="outlined"
@@ -163,23 +181,57 @@ function AppHeader() {
                     ?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
               >
-                Analyze
+                View analysis
+              </Button>
+            </Tooltip>
+
+            <Tooltip title="Add a new blank field to the canvas" arrow>
+              <Button
+                variant="contained"
+                startIcon={<AddCircleOutlineRoundedIcon />}
+                onClick={() => {
+                  document
+                    .getElementById("field-library")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              >
+                Add field
               </Button>
             </Tooltip>
           </Stack>
 
-          <Divider flexItem sx={{ display: { xs: "none", sm: "block" } }} />
+          <Divider flexItem />
 
-          {/* Template loaders */}
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          {/* Template loaders — visually grouped */}
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 0.75,
+              p: 1.25,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "divider",
+              bgcolor: alpha("#f1f5f9", 0.8),
+            }}
+          >
+            <Typography
+              variant="overline"
+              color="text.disabled"
+              sx={{ width: "100%", mb: 0.25 }}
+            >
+              Load template
+            </Typography>
+
             <Tooltip title="Restore the default signup demo form" arrow>
               <Button
                 variant="text"
                 size="small"
                 startIcon={<RestartAltRoundedIcon />}
                 onClick={resetToPrimaryTemplate}
+                sx={{ color: "text.secondary" }}
               >
-                Reset demo
+                Signup demo
               </Button>
             </Tooltip>
 
@@ -192,8 +244,9 @@ function AppHeader() {
                 size="small"
                 startIcon={<DashboardCustomizeRoundedIcon />}
                 onClick={() => loadTemplate(templates[1])}
+                sx={{ color: "text.secondary" }}
               >
-                Checkout template
+                Checkout
               </Button>
             </Tooltip>
 
@@ -211,22 +264,7 @@ function AppHeader() {
                 UX stress test
               </Button>
             </Tooltip>
-
-            <Tooltip title="Add a new blank field to the canvas" arrow>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<AddCircleOutlineRoundedIcon />}
-                onClick={() => {
-                  document
-                    .getElementById("field-library")
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
-                Add field
-              </Button>
-            </Tooltip>
-          </Stack>
+          </Box>
         </Stack>
       </Stack>
     </Box>

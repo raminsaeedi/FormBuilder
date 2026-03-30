@@ -1,4 +1,4 @@
-import { Box, Container, Divider, Stack } from "@mui/material";
+import { Box, Container, Stack } from "@mui/material";
 import AppHeader from "../components/shared/AppHeader";
 import FormCanvas from "../components/builder/BuilderCanvas";
 import FieldPalette from "../components/builder/FieldPalette";
@@ -11,8 +11,24 @@ function App() {
   const previewMode = useBuilderStore((s) => s.previewMode);
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <Container maxWidth={false} sx={{ px: { xs: 2, md: 3 }, py: 3 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "background.default",
+        // Subtle dot-grid texture for depth
+        backgroundImage:
+          "radial-gradient(circle, rgba(148,163,184,0.18) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
+      <Container
+        maxWidth={false}
+        sx={{
+          maxWidth: 1600,
+          px: { xs: 2, md: 3, xl: 4 },
+          py: { xs: 2.5, md: 3 },
+        }}
+      >
         <Stack spacing={3}>
           {/* ── Header ── */}
           <AppHeader />
@@ -24,9 +40,10 @@ function App() {
                 display: "grid",
                 gridTemplateColumns: {
                   xs: "1fr",
+                  lg: "260px minmax(0, 1fr) 340px",
                   xl: "280px minmax(0, 1fr) 360px",
                 },
-                gap: 2,
+                gap: 3,
                 alignItems: "start",
               }}
             >
@@ -39,7 +56,7 @@ function App() {
               <FormCanvas />
 
               {/* Right: inspector + analysis */}
-              <Stack spacing={2}>
+              <Stack spacing={3}>
                 <InspectorPanel />
                 <Box id="ux-analysis-panel">
                   <UxAnalysisPanel />
@@ -48,13 +65,11 @@ function App() {
             </Box>
           )}
 
-          <Divider />
-
-          {/* ── Preview (always visible, prominent in preview mode) ── */}
+          {/* ── Preview ── */}
           <Box
             sx={{
               transition: "opacity 200ms ease",
-              opacity: previewMode ? 1 : 0.92,
+              opacity: previewMode ? 1 : 0.94,
             }}
           >
             <PreviewPanel />

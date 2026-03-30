@@ -22,6 +22,7 @@ function EmptyCanvas({ onAddFirst }: { onAddFirst: () => void }) {
         bgcolor: "grey.50",
       }}
     >
+      {/* Icon badge */}
       <Box
         sx={{
           display: "inline-flex",
@@ -37,23 +38,29 @@ function EmptyCanvas({ onAddFirst }: { onAddFirst: () => void }) {
       >
         <ViewStreamRoundedIcon fontSize="medium" />
       </Box>
+
+      {/* Headline */}
       <Typography variant="h6" fontWeight={700} gutterBottom>
-        Canvas is empty
+        Start building your form
       </Typography>
+
+      {/* Supporting copy */}
       <Typography
         variant="body2"
         color="text.secondary"
-        sx={{ mb: 3, maxWidth: 280, mx: "auto" }}
+        sx={{ mb: 3, maxWidth: 300, mx: "auto", lineHeight: 1.6 }}
       >
-        Pick a field type from the palette on the left to start building your
-        form.
+        Choose a field type from the palette on the left, or add a text field
+        right now to get started.
       </Typography>
+
+      {/* Primary CTA */}
       <Button
         variant="contained"
         startIcon={<AddCircleOutlineRoundedIcon />}
         onClick={onAddFirst}
       >
-        Add text field
+        Add your first field
       </Button>
     </Box>
   );
@@ -78,7 +85,7 @@ function FormCanvas() {
     <PanelSection
       eyebrow="Canvas"
       title="Form structure"
-      description="Click a field to select it and edit its settings in the inspector."
+      description="Drag fields into order, then click any field to edit its settings in the inspector."
       actions={
         <Chip
           label={`${fieldCount} field${fieldCount !== 1 ? "s" : ""}`}

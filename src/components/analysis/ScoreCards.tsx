@@ -17,23 +17,16 @@ import { useBuilderStore } from "../../store/builderStore";
 // Score derivation helpers
 // ─────────────────────────────────────────────
 
-/**
- * Derives sub-scores from the primary UX analysis result.
- * These are heuristic approximations — no separate engine needed for MVP.
- */
 function deriveScores(
   uxScore: number,
   requiredFields: number,
   totalFields: number,
   longLabels: number,
 ) {
-  // Accessibility: penalise missing labels (long labels hurt screen readers)
   const accessibilityScore = Math.max(
     30,
     Math.min(100, uxScore - longLabels * 6),
   );
-
-  // Mobile readiness: penalise high required-field count (friction on small screens)
   const mobileScore = Math.max(
     30,
     Math.min(
@@ -41,19 +34,16 @@ function deriveScores(
       100 - Math.max(0, requiredFields - 3) * 10 - (totalFields > 6 ? 12 : 0),
     ),
   );
-
-  // Clarity: penalise long labels and high total field count
   const clarityScore = Math.max(
     30,
     Math.min(100, 100 - longLabels * 8 - Math.max(0, totalFields - 5) * 4),
   );
-
   return { accessibilityScore, mobileScore, clarityScore };
 }
 
 // ─────────────────────────────────────────────
 // Score colour helpers
-// ───────────────────────────────────��─────────
+// ─────────────────────────────────────────────
 
 type ScoreLevel = "good" | "medium" | "poor";
 
@@ -64,9 +54,9 @@ function getLevel(score: number): ScoreLevel {
 }
 
 const levelColor: Record<ScoreLevel, string> = {
-  good: "#0f766e", // teal
-  medium: "#d97706", // amber
-  poor: "#dc2626", // red
+  good: "#0f766e",
+  medium: "#d97706",
+  poor: "#dc2626",
 };
 
 const levelLabel: Record<ScoreLevel, string> = {
@@ -82,6 +72,8 @@ const levelLabel: Record<ScoreLevel, string> = {
 function ScoreGauge({ score }: { score: number }) {
   const level = getLevel(score);
   const color = levelColor[level];
+  const size = 72;
+  const thickness = 4.5;
 
   return (
     <Box sx={{ position: "relative", display: "inline-flex" }}>
@@ -89,16 +81,16 @@ function ScoreGauge({ score }: { score: number }) {
       <CircularProgress
         variant="determinate"
         value={100}
-        size={64}
-        thickness={4}
-        sx={{ color: alpha(color, 0.12), position: "absolute" }}
+        size={size}
+        thickness={thickness}
+        sx={{ color: alpha(color, 0.1), position: "absolute" }}
       />
       {/* Foreground value */}
       <CircularProgress
         variant="determinate"
         value={score}
-        size={64}
-        thickness={4}
+        size={size}
+        thickness={thickness}
         sx={{ color }}
       />
       {/* Score label */}
@@ -115,9 +107,9 @@ function ScoreGauge({ score }: { score: number }) {
         }}
       >
         <Typography
-          variant="caption"
+          variant="subtitle2"
           fontWeight={800}
-          sx={{ color, lineHeight: 1 }}
+          sx={{ color, lineHeight: 1, fontSize: "0.85rem" }}
         >
           {score}
         </Typography>
@@ -153,31 +145,35 @@ function ScoreCard({
     <Tooltip title={tooltip} arrow placement="top">
       <Box
         sx={{
-          flex: "1 1 160px",
-          minWidth: 140,
+          flex: "1 1 140px",
+          minWidth: 130,
+          minHeight: 200,
           p: 2,
-          borderRadius: 3,
+          borderRadius: "12px",
           border: "1px solid",
-          borderColor: alpha(color, 0.2),
-          bgcolor: alpha(color, 0.04),
-          transition: "border-color 200ms ease, background-color 200ms ease",
+          borderColor: alpha(color, 0.18),
+          bgcolor: alpha(color, 0.03),
+          transition:
+            "border-color 200ms ease, background-color 200ms ease, box-shadow 200ms ease",
+          cursor: "default",
           "&:hover": {
-            borderColor: alpha(color, 0.4),
-            bgcolor: alpha(color, 0.07),
+            borderColor: alpha(color, 0.35),
+            bgcolor: alpha(color, 0.06),
+            boxShadow: `0 4px 20px ${alpha(color, 0.12)}`,
           },
         }}
       >
-        <Stack spacing={1.5} alignItems="center" textAlign="center">
+        <Stack spacing={1.25} alignItems="center" textAlign="center">
           {/* Gauge */}
           <ScoreGauge score={score} />
 
           {/* Icon + title */}
-          <Stack spacing={0.25} alignItems="center">
+          <Stack spacing={0.2} alignItems="center">
             <Box
               sx={{
                 display: "inline-flex",
                 color,
-                "& svg": { fontSize: "1rem" },
+                "& svg": { fontSize: "0.95rem" },
               }}
             >
               {icon}
@@ -195,15 +191,15 @@ function ScoreCard({
           <Box
             sx={{
               px: 1,
-              py: 0.25,
-              borderRadius: 10,
-              bgcolor: alpha(color, 0.12),
+              py: 0.2,
+              borderRadius: "99px",
+              bgcolor: alpha(color, 0.1),
             }}
           >
             <Typography
               variant="caption"
               fontWeight={700}
-              sx={{ color, letterSpacing: "0.04em" }}
+              sx={{ color, letterSpacing: "0.04em", fontSize: "0.68rem" }}
             >
               {label}
             </Typography>
@@ -213,7 +209,7 @@ function ScoreCard({
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ lineHeight: 1.4 }}
+            sx={{ lineHeight: 1.45, fontSize: "0.7rem" }}
           >
             {description}
           </Typography>
@@ -227,15 +223,6 @@ function ScoreCard({
 // Main component
 // ─────────────────────────────────────────────
 
-/**
- * `ScoreCards` — displays four heuristic quality scores for the current form.
- *
- * Scores are derived from the live `analysisResult` in the builder store.
- * No separate engine is needed — all values are computed from the primary
- * UX score and form statistics.
- *
- * Place this component above or below the `UxAnalysisPanel` in the layout.
- */
 function ScoreCards() {
   const analysis = useBuilderStore((s) => s.analysisResult);
 
@@ -265,7 +252,7 @@ function ScoreCards() {
     },
     {
       icon: <PhoneAndroidRoundedIcon />,
-      title: "Mobile Readiness",
+      title: "Mobile",
       score: mobileScore,
       description: "Friction level on small-screen devices.",
       tooltip:
@@ -284,9 +271,13 @@ function ScoreCards() {
   return (
     <Box
       sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 1.5,
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: 1.25,
+        // Collapse to 2 columns on narrow panels
+        "@media (max-width: 480px)": {
+          gridTemplateColumns: "repeat(2, 1fr)",
+        },
       }}
     >
       {cards.map((card) => (

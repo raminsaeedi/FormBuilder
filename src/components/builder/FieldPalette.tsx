@@ -1,72 +1,10 @@
-import CalendarTodayRoundedIcon from "@mui/icons-material/CalendarTodayRounded";
-import CheckBoxOutlinedIcon from "@mui/icons-material/CheckBoxOutlined";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import MailOutlineRoundedIcon from "@mui/icons-material/MailOutlineRounded";
-import NotesRoundedIcon from "@mui/icons-material/NotesRounded";
-import NumbersRoundedIcon from "@mui/icons-material/NumbersRounded";
-import PhoneRoundedIcon from "@mui/icons-material/PhoneRounded";
-import RadioButtonCheckedRoundedIcon from "@mui/icons-material/RadioButtonCheckedRounded";
-import ShortTextRoundedIcon from "@mui/icons-material/ShortTextRounded";
-import SubjectRoundedIcon from "@mui/icons-material/SubjectRounded";
 import { alpha, Box, Chip, Stack, Tooltip, Typography } from "@mui/material";
-import { ReactNode } from "react";
 import PanelSection from "../shared/PanelSection";
+import { fieldTypeMeta } from "../shared/fieldMeta";
 import { fieldCatalog } from "../../data/fieldCatalog";
 import { useBuilderStore } from "../../store/builderStore";
 import { FieldCategory, FieldType } from "../../types/form";
-
-// ─────────────────────────────────────────────
-// Icon + accent colour per field type
-// ─────────────────────────────────────────────
-
-interface FieldMeta {
-  icon: ReactNode;
-  color: string;
-}
-
-const fieldMeta: Record<FieldType, FieldMeta> = {
-  text: {
-    icon: <ShortTextRoundedIcon fontSize="small" />,
-    color: "#2563eb", // blue
-  },
-  email: {
-    icon: <MailOutlineRoundedIcon fontSize="small" />,
-    color: "#0891b2", // cyan
-  },
-  phone: {
-    icon: <PhoneRoundedIcon fontSize="small" />,
-    color: "#0f766e", // teal
-  },
-  password: {
-    icon: <LockOutlinedIcon fontSize="small" />,
-    color: "#7c3aed", // violet
-  },
-  number: {
-    icon: <NumbersRoundedIcon fontSize="small" />,
-    color: "#b45309", // amber
-  },
-  date: {
-    icon: <CalendarTodayRoundedIcon fontSize="small" />,
-    color: "#be185d", // pink
-  },
-  textarea: {
-    icon: <NotesRoundedIcon fontSize="small" />,
-    color: "#475569", // slate
-  },
-  select: {
-    icon: <SubjectRoundedIcon fontSize="small" />,
-    color: "#16a34a", // green
-  },
-  radio: {
-    icon: <RadioButtonCheckedRoundedIcon fontSize="small" />,
-    color: "#ea580c", // orange
-  },
-  checkbox: {
-    icon: <CheckBoxOutlinedIcon fontSize="small" />,
-    color: "#dc2626", // red
-  },
-};
 
 // ─────────────────────────────────────────────
 // Single palette card
@@ -80,10 +18,14 @@ interface PaletteCardProps {
 }
 
 function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
-  const { icon, color } = fieldMeta[type];
+  const { icon, color } = fieldTypeMeta[type];
 
   return (
-    <Tooltip title={`Click to add a ${title} field`} placement="right" arrow>
+    <Tooltip
+      title={`Add a ${title} field to the canvas`}
+      placement="right"
+      arrow
+    >
       <Box
         role="button"
         tabIndex={0}
@@ -97,27 +39,28 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
         sx={{
           display: "flex",
           alignItems: "flex-start",
-          gap: 1.5,
-          p: 1.5,
-          borderRadius: 3,
+          gap: 1.25,
+          p: 1.25,
+          borderRadius: "10px",
           border: "1px solid",
           borderColor: "divider",
-          bgcolor: "grey.50",
+          bgcolor: "background.paper",
           cursor: "pointer",
-          transition: "all 150ms ease",
+          transition: "all 160ms ease",
           outline: "none",
           "&:hover": {
-            borderColor: color,
-            bgcolor: alpha(color, 0.06),
-            boxShadow: `0 0 0 3px ${alpha(color, 0.12)}`,
+            borderColor: alpha(color, 0.5),
+            bgcolor: alpha(color, 0.05),
+            boxShadow: `0 2px 12px ${alpha(color, 0.14)}`,
             transform: "translateY(-1px)",
           },
           "&:focus-visible": {
             borderColor: color,
-            boxShadow: `0 0 0 3px ${alpha(color, 0.25)}`,
+            boxShadow: `0 0 0 3px ${alpha(color, 0.22)}`,
           },
           "&:active": {
             transform: "translateY(0)",
+            boxShadow: "none",
           },
         }}
       >
@@ -128,9 +71,9 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 34,
-            height: 34,
-            borderRadius: 2,
+            width: 32,
+            height: 32,
+            borderRadius: "8px",
             bgcolor: alpha(color, 0.1),
             color,
           }}
@@ -139,7 +82,7 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
         </Box>
 
         {/* Text */}
-        <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+        <Stack spacing={0.2} sx={{ minWidth: 0 }}>
           <Typography
             variant="subtitle2"
             sx={{ lineHeight: 1.3, color: "text.primary" }}
@@ -172,7 +115,7 @@ function FieldPalette() {
     <PanelSection
       eyebrow="Palette"
       title="Field types"
-      description="Click any field to add it to the canvas."
+      description="Click any type to add it to the canvas."
       actions={
         <Chip
           icon={<LayersRoundedIcon />}
@@ -186,30 +129,29 @@ function FieldPalette() {
         {GROUPS.map((group) => {
           const items = fieldCatalog.filter((item) => item.category === group);
           return (
-            <Stack key={group} spacing={1}>
+            <Stack key={group} spacing={0.75}>
               {/* Group label */}
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ mb: 0.25 }}
+              >
                 <Typography
                   variant="overline"
-                  color="text.secondary"
+                  color="text.disabled"
                   sx={{ letterSpacing: "0.1em", lineHeight: 1 }}
                 >
                   {group}
                 </Typography>
-                <Box
-                  sx={{
-                    flex: 1,
-                    height: "1px",
-                    bgcolor: "divider",
-                  }}
-                />
+                <Box sx={{ flex: 1, height: "1px", bgcolor: "divider" }} />
                 <Typography variant="caption" color="text.disabled">
                   {items.length}
                 </Typography>
               </Stack>
 
               {/* Cards */}
-              <Stack spacing={0.75}>
+              <Stack spacing={0.6}>
                 {items.map((item) => (
                   <PaletteCard
                     key={item.type}

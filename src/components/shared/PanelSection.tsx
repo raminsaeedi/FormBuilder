@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { alpha, Box, Divider, Stack, Typography } from "@mui/material";
 import { ReactNode } from "react";
 
 interface PanelSectionProps {
@@ -21,44 +21,61 @@ function PanelSection({
       sx={{
         border: "1px solid",
         borderColor: "divider",
-        borderRadius: 4,
+        borderRadius: "18px",
         bgcolor: "background.paper",
-        p: 2.25,
-        boxShadow: "0 16px 60px rgba(15, 23, 42, 0.05)",
+        overflow: "hidden",
+        boxShadow: "0 2px 16px rgba(15, 23, 42, 0.05)",
       }}
     >
-      <Stack spacing={2}>
+      {/* ── Panel header ── */}
+      <Box
+        sx={{
+          px: 2.5,
+          pt: 2.25,
+          pb: 2,
+          background: `linear-gradient(180deg, ${alpha("#f8faff", 1)} 0%, ${alpha("#ffffff", 1)} 100%)`,
+        }}
+      >
         <Stack
           direction="row"
           justifyContent="space-between"
           spacing={2}
           alignItems="flex-start"
         >
-          <Box>
-            {eyebrow ? (
+          <Box sx={{ minWidth: 0 }}>
+            {eyebrow && (
               <Typography
                 variant="overline"
-                color="primary.main"
-                sx={{ letterSpacing: "0.12em" }}
+                sx={{
+                  color: "primary.main",
+                  letterSpacing: "0.12em",
+                  display: "block",
+                  mb: 0.4,
+                }}
               >
                 {eyebrow}
               </Typography>
-            ) : null}
+            )}
             <Typography variant="h5">{title}</Typography>
-            {description ? (
+            {description && (
               <Typography
                 variant="body2"
                 color="text.secondary"
-                sx={{ mt: 0.75 }}
+                sx={{ mt: 0.5, lineHeight: 1.55 }}
               >
                 {description}
               </Typography>
-            ) : null}
+            )}
           </Box>
-          {actions}
+          {actions && <Box sx={{ flexShrink: 0, pt: 0.25 }}>{actions}</Box>}
         </Stack>
-        {children}
-      </Stack>
+      </Box>
+
+      {/* ── Divider ── */}
+      <Divider />
+
+      {/* ── Panel body ── */}
+      <Box sx={{ p: 2.5 }}>{children}</Box>
     </Box>
   );
 }
