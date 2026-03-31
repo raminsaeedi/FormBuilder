@@ -36,13 +36,11 @@ interface BuilderState {
   loadTemplate: (template: FormDefinition) => void;
   resetToPrimaryTemplate: () => void;
   selectField: (fieldId: string | null) => void;
-  addField: (type: FieldType) => void;
-  insertField: (type: FieldType, index?: number) => void;
+  addField: (type: FieldType, index?: number) => void;
+  moveField: (fieldId: string, toIndex: number) => void;
+  removeField: (fieldId: string) => void;
   updateField: (fieldId: string, patch: FieldPatch) => void;
-  deleteField: (fieldId: string) => void;
   duplicateField: (fieldId: string) => void;
-  moveField: (fieldId: string, direction: "up" | "down") => void;
-  reorderFields: (activeFieldId: string, overFieldId: string) => void;
   setPreviewFieldValue: (fieldId: string, value: PreviewFieldValue) => void;
   resetPreviewFieldValues: () => void;
   togglePreviewMode: () => void;
@@ -289,6 +287,46 @@ const buildMutationResult = (
   analysisResult: analyzeForm(form),
 });
 
+const clampIndex = (index: number, maxIndex: number) =>
+  Math.max(0, Math.min(index, maxIndex));
+
+const createFormWithInsertedField = (
+  form: FormDefinition,
+  field: FormField,
+  index?: number,
+): FormDefinition => {
+  const nextFields = [...form.fields];
+  const insertionIndex =
+    typeof index === "number"
+      ? clampIndex(index, nextFields.length)
+      : nextFields.length;
+
+  nextFields.splice(insertionIndex, 0, field);
+
+  return {
+    ...form,
+    fields: nextFields,
+  };
+};
+
+const getNextSelectedFieldIdAfterRemoval = (
+  fields: FormField[],
+  removedIndex: number,
+  currentSelectedFieldId: string | null,
+  removedFieldId: string,
+) => {
+  if (currentSelectedFieldId !== removedFieldId) {
+    return currentSelectedFieldId;
+  }
+
+  return (
+    fields[removedIndex]?.id ??
+    fields[removedIndex - 1]?.id ??
+    fields[0]?.id ??
+    null
+  );
+};
+
 const initialForm = cloneTemplate(primaryTemplate);
 
 export const useBuilderStore = create<BuilderState>((set) => ({
@@ -318,36 +356,64 @@ export const useBuilderStore = create<BuilderState>((set) => ({
 
   selectField: (fieldId) => set({ selectedFieldId: fieldId }),
 
-  addField: (type) =>
+  addField: (type, index) =>
     set((state) => {
       const newField = fieldFactory(type);
-      const form: FormDefinition = {
-        ...state.form,
-        fields: [...state.form.fields, newField],
-      };
+      const form = createFormWithInsertedField(state.form, newField, index);
 
       return buildMutationResult(state, form, {
         selectedFieldId: newField.id,
       });
     }),
 
-  insertField: (type, index) =>
+  moveField: (fieldId, toIndex) =>
     set((state) => {
-      const newField = fieldFactory(type);
-      const nextIndex =
-        typeof index === "number"
-          ? Math.max(0, Math.min(index, state.form.fields.length))
-          : state.form.fields.length;
-      const fields = [...state.form.fields];
-      fields.splice(nextIndex, 0, newField);
+      const fromIndex = state.form.fields.findIndex(
+        (field) => field.id === fieldId,
+      );
+      if (fromIndex < 0) {
+        return state;
+      }
+
+      const nextIndex = clampIndex(toIndex, state.form.fields.length - 1);
+      if (fromIndex === nextIndex) {
+        return state;
+      }
 
       const form: FormDefinition = {
         ...state.form,
-        fields,
+        fields: moveArrayItem(state.form.fields, fromIndex, nextIndex),
       };
 
       return buildMutationResult(state, form, {
-        selectedFieldId: newField.id,
+        selectedFieldId: fieldId,
+      });
+    }),
+
+  removeField: (fieldId) =>
+    set((state) => {
+      const removedIndex = state.form.fields.findIndex(
+        (field) => field.id === fieldId,
+      );
+      if (removedIndex < 0) {
+        return state;
+      }
+
+      const nextFields = state.form.fields.filter(
+        (field) => field.id !== fieldId,
+      );
+      const form: FormDefinition = {
+        ...state.form,
+        fields: nextFields,
+      };
+
+      return buildMutationResult(state, form, {
+        selectedFieldId: getNextSelectedFieldIdAfterRemoval(
+          nextFields,
+          removedIndex,
+          state.selectedFieldId,
+          fieldId,
+        ),
       });
     }),
 
@@ -363,93 +429,25 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       return buildMutationResult(state, form);
     }),
 
-  deleteField: (fieldId) =>
-    set((state) => {
-      const deletedIndex = state.form.fields.findIndex(
-        (field) => field.id === fieldId,
-      );
-      if (deletedIndex < 0) {
-        return state;
-      }
-
-      const nextFields = state.form.fields.filter(
-        (field) => field.id !== fieldId,
-      );
-      const form: FormDefinition = { ...state.form, fields: nextFields };
-
-      const nextSelectedFieldId =
-        state.selectedFieldId !== fieldId
-          ? state.selectedFieldId
-          : (nextFields[deletedIndex]?.id ??
-            nextFields[deletedIndex - 1]?.id ??
-            nextFields[0]?.id ??
-            null);
-
-      return buildMutationResult(state, form, {
-        selectedFieldId: nextSelectedFieldId,
-      });
-    }),
-
   duplicateField: (fieldId) =>
     set((state) => {
       const index = state.form.fields.findIndex(
         (field) => field.id === fieldId,
       );
-      if (index < 0) return state;
+      if (index < 0) {
+        return state;
+      }
 
       const duplicate = duplicateFieldDefinition(state.form.fields[index]);
-      const fields = [...state.form.fields];
-      fields.splice(index + 1, 0, duplicate);
+      const form = createFormWithInsertedField(
+        state.form,
+        duplicate,
+        index + 1,
+      );
 
-      const form: FormDefinition = { ...state.form, fields };
       return buildMutationResult(state, form, {
         selectedFieldId: duplicate.id,
       });
-    }),
-
-  moveField: (fieldId, direction) =>
-    set((state) => {
-      const index = state.form.fields.findIndex(
-        (field) => field.id === fieldId,
-      );
-      if (index < 0) return state;
-
-      const targetIndex = direction === "up" ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= state.form.fields.length) {
-        return state;
-      }
-
-      const form: FormDefinition = {
-        ...state.form,
-        fields: moveArrayItem(state.form.fields, index, targetIndex),
-      };
-
-      return buildMutationResult(state, form);
-    }),
-
-  reorderFields: (activeFieldId, overFieldId) =>
-    set((state) => {
-      if (activeFieldId === overFieldId) {
-        return state;
-      }
-
-      const activeIndex = state.form.fields.findIndex(
-        (field) => field.id === activeFieldId,
-      );
-      const overIndex = state.form.fields.findIndex(
-        (field) => field.id === overFieldId,
-      );
-
-      if (activeIndex < 0 || overIndex < 0) {
-        return state;
-      }
-
-      const form: FormDefinition = {
-        ...state.form,
-        fields: moveArrayItem(state.form.fields, activeIndex, overIndex),
-      };
-
-      return buildMutationResult(state, form);
     }),
 
   setPreviewFieldValue: (fieldId, value) =>

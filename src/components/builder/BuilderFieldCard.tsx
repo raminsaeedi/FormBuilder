@@ -14,7 +14,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { ReactNode } from "react";
+import { memo, ReactNode } from "react";
 import { FormField } from "../../types/form";
 import { fieldTypeMeta } from "../shared/fieldMeta";
 import { DND_ITEM_TYPE } from "./dnd";
@@ -168,7 +168,7 @@ export interface BuilderFieldCardProps {
   onDelete: () => void;
 }
 
-function BuilderFieldCard({
+const BuilderFieldCard = memo(function BuilderFieldCard({
   field,
   index,
   total,
@@ -187,6 +187,7 @@ function BuilderFieldCard({
     attributes,
     listeners,
     setNodeRef,
+    setActivatorNodeRef,
     transform,
     transition,
     isDragging,
@@ -209,9 +210,9 @@ function BuilderFieldCard({
       aria-pressed={isSelected}
       aria-label={`${field.label || "Unnamed field"} — ${typeLabel} field`}
       onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
           onSelect();
         }
       }}
@@ -267,6 +268,7 @@ function BuilderFieldCard({
               : "0 8px 22px rgba(15, 23, 42, 0.06)",
         backdropFilter: "blur(10px)",
         zIndex: isDragging ? 3 : isOver ? 2 : 1,
+        touchAction: "manipulation",
         "&::before": {
           content: '""',
           position: "absolute",
@@ -483,8 +485,9 @@ function BuilderFieldCard({
           >
             <Tooltip title="Drag to reorder" arrow>
               <Box
+                ref={setActivatorNodeRef}
                 className="drag-handle"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
                 {...attributes}
                 {...listeners}
                 sx={{
@@ -514,6 +517,7 @@ function BuilderFieldCard({
                   boxShadow: isDragging
                     ? `0 8px 18px ${alpha(color, 0.16)}`
                     : "none",
+                  touchAction: "none",
                   "&:hover": {
                     bgcolor: alpha(color, 0.08),
                     borderColor: alpha(color, 0.22),
@@ -541,8 +545,8 @@ function BuilderFieldCard({
                   <IconButton
                     size="small"
                     disabled={isFirst}
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       onMoveUp();
                     }}
                     sx={{
@@ -563,8 +567,8 @@ function BuilderFieldCard({
                   <IconButton
                     size="small"
                     disabled={isLast}
-                    onClick={(e) => {
-                      e.stopPropagation();
+                    onClick={(event) => {
+                      event.stopPropagation();
                       onMoveDown();
                     }}
                     sx={{
@@ -583,8 +587,8 @@ function BuilderFieldCard({
               <Tooltip title="Duplicate field" arrow>
                 <IconButton
                   size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     onDuplicate();
                   }}
                   aria-label="Duplicate field"
@@ -602,8 +606,8 @@ function BuilderFieldCard({
                 <IconButton
                   size="small"
                   color="error"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     onDelete();
                   }}
                   aria-label="Delete field"
@@ -677,8 +681,8 @@ function BuilderFieldCard({
               <IconButton
                 size="small"
                 color="error"
-                onClick={(e) => {
-                  e.stopPropagation();
+                onClick={(event) => {
+                  event.stopPropagation();
                   onDelete();
                 }}
                 aria-label="Remove this field"
@@ -701,6 +705,6 @@ function BuilderFieldCard({
       </Stack>
     </Box>
   );
-}
+});
 
 export default BuilderFieldCard;

@@ -1,13 +1,17 @@
 import {
   DragEndEvent,
+  DragOverEvent,
   DragStartEvent,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { FieldType } from "../../types/form";
 
 export const BUILDER_CANVAS_DROP_ZONE_ID = "builder-canvas-drop-zone";
+export const BUILDER_REMOVE_DROP_ZONE_ID = "builder-remove-drop-zone";
 
 export const DND_ITEM_TYPE = {
   paletteField: "palette-field",
@@ -44,12 +48,30 @@ export function useBuilderDndSensors() {
   return useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 6,
+        distance: 4,
       },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 }
 
-export function getDragDataFromEvent(event: DragStartEvent | DragEndEvent) {
+export function getDragDataFromEvent(
+  event: DragStartEvent | DragOverEvent | DragEndEvent,
+) {
   return event.active.data.current as BuilderDragData | undefined;
+}
+
+export function isCanvasFieldId(id: string, fieldIds: string[]) {
+  return fieldIds.includes(id);
+}
+
+export function getInsertionIndex(overId: string, fieldIds: string[]) {
+  if (overId === BUILDER_CANVAS_DROP_ZONE_ID) {
+    return fieldIds.length;
+  }
+
+  const overIndex = fieldIds.indexOf(overId);
+  return overIndex >= 0 ? overIndex : fieldIds.length;
 }

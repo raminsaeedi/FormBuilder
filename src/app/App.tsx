@@ -6,6 +6,7 @@ import {
   DragStartEvent,
 } from "@dnd-kit/core";
 import AddCircleOutlineRoundedIcon from "@mui/icons-material/AddCircleOutlineRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import SouthRoundedIcon from "@mui/icons-material/SouthRounded";
 import { alpha, Box, Chip, Container, Stack, Typography } from "@mui/material";
@@ -14,9 +15,12 @@ import UxAnalysisPanel from "../components/analysis/UxAnalysisPanel";
 import FormCanvas from "../components/builder/BuilderCanvas";
 import {
   BUILDER_CANVAS_DROP_ZONE_ID,
+  BUILDER_REMOVE_DROP_ZONE_ID,
   BuilderDragData,
   getDragDataFromEvent,
+  getInsertionIndex,
   isCanvasFieldDragData,
+  isCanvasFieldId,
   isPaletteFieldDragData,
   useBuilderDndSensors,
 } from "../components/builder/dnd";
@@ -28,13 +32,19 @@ import { fieldTypeMeta } from "../components/shared/fieldMeta";
 import { useBuilderStore } from "../store/builderStore";
 
 function App() {
-  const previewMode = useBuilderStore((s) => s.previewMode);
-  const form = useBuilderStore((s) => s.form);
+  const previewMode = useBuilderStore((state) => state.previewMode);
+  const form = useBuilderStore((state) => state.form);
+  const addField = useBuilderStore((state) => state.addField);
+  const moveField = useBuilderStore((state) => state.moveField);
+  const removeField = useBuilderStore((state) => state.removeField);
   const sensors = useBuilderDndSensors();
-  const insertField = useBuilderStore((s) => s.insertField);
-  const reorderFields = useBuilderStore((s) => s.reorderFields);
   const [activeDragData, setActiveDragData] = useState<BuilderDragData | null>(
     null,
+  );
+
+  const fieldIds = useMemo(
+    () => form.fields.map((field) => field.id),
+    [form.fields],
   );
 
   const activeField = useMemo(() => {
@@ -53,23 +63,41 @@ function App() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const dragData = getDragDataFromEvent(event);
-    const overId = event.over?.id;
+    const overId = typeof event.over?.id === "string" ? event.over.id : null;
+
+    if (!dragData) {
+      setActiveDragData(null);
+      return;
+    }
 
     if (isPaletteFieldDragData(dragData)) {
-      if (overId === BUILDER_CANVAS_DROP_ZONE_ID) {
-        insertField(dragData.fieldType);
+      if (
+        overId === BUILDER_CANVAS_DROP_ZONE_ID ||
+        (overId !== null && isCanvasFieldId(overId, fieldIds))
+      ) {
+        addField(
+          dragData.fieldType,
+          getInsertionIndex(overId ?? BUILDER_CANVAS_DROP_ZONE_ID, fieldIds),
+        );
       }
 
       setActiveDragData(null);
       return;
     }
 
-    if (
-      isCanvasFieldDragData(dragData) &&
-      typeof overId === "string" &&
-      overId !== BUILDER_CANVAS_DROP_ZONE_ID
-    ) {
-      reorderFields(dragData.fieldId, overId);
+    if (isCanvasFieldDragData(dragData)) {
+      if (overId === BUILDER_REMOVE_DROP_ZONE_ID || overId === null) {
+        removeField(dragData.fieldId);
+        setActiveDragData(null);
+        return;
+      }
+
+      if (
+        overId === BUILDER_CANVAS_DROP_ZONE_ID ||
+        isCanvasFieldId(overId, fieldIds)
+      ) {
+        moveField(dragData.fieldId, getInsertionIndex(overId, fieldIds));
+      }
     }
 
     setActiveDragData(null);
@@ -146,7 +174,7 @@ function App() {
               sx={{
                 transition: "opacity 200ms ease, transform 200ms ease",
                 opacity: previewMode ? 1 : 0.96,
-                transform: previewMode ? "translateY(0)" : "translateY(0)",
+                transform: "translateY(0)",
               }}
             >
               <PreviewPanel />
@@ -157,7 +185,7 @@ function App() {
 
       <DragOverlay
         dropAnimation={{
-          duration: 180,
+          duration: 140,
           easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
         }}
       >
@@ -216,7 +244,7 @@ function App() {
                   <Chip
                     size="small"
                     icon={<SouthRoundedIcon />}
-                    label="Drop into canvas"
+                    label="Drop between cards"
                     variant="outlined"
                     sx={{ height: 22, fontWeight: 700 }}
                   />
@@ -234,7 +262,7 @@ function App() {
                   color="text.secondary"
                   sx={{ lineHeight: 1.45 }}
                 >
-                  Release over the canvas to add this field to your form.
+                  Release exactly where you want the new field to be inserted.
                 </Typography>
               </Stack>
             </Stack>
@@ -290,9 +318,17 @@ function App() {
                       color: canvasOverlay.color,
                     }}
                   />
-                  <Typography variant="caption" color="text.secondary">
-                    Move within canvas
-                  </Typography>
+                  <Chip
+                    size="small"
+                    icon={<DeleteOutlineRoundedIcon />}
+                    label="Drag out to delete"
+                    variant="outlined"
+                    sx={{
+                      height: 22,
+                      fontWeight: 700,
+                      borderColor: alpha("#ef4444", 0.2),
+                    }}
+                  />
                 </Stack>
 
                 <Typography
@@ -308,7 +344,8 @@ function App() {
                   color="text.secondary"
                   sx={{ lineHeight: 1.45 }}
                 >
-                  Release to place this field in a new position.
+                  Drop between cards to reorder, or drag outside the canvas to
+                  remove it.
                 </Typography>
               </Stack>
             </Stack>

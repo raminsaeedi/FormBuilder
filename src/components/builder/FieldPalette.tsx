@@ -3,6 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import { alpha, Box, Chip, Stack, Tooltip, Typography } from "@mui/material";
+import { memo } from "react";
 import { fieldCatalog } from "../../data/fieldCatalog";
 import { useBuilderStore } from "../../store/builderStore";
 import { FieldCategory, FieldType } from "../../types/form";
@@ -17,7 +18,12 @@ interface PaletteCardProps {
   onAdd: (type: FieldType) => void;
 }
 
-function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
+const PaletteCard = memo(function PaletteCard({
+  type,
+  title,
+  description,
+  onAdd,
+}: PaletteCardProps) {
   const { icon, color } = fieldTypeMeta[type];
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -37,9 +43,9 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
       <Box
         ref={setNodeRef}
         onClick={() => onAdd(type)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
             onAdd(type);
           }
         }}
@@ -65,6 +71,8 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
             ? `0 14px 30px ${alpha(color, 0.16)}`
             : "0 6px 18px rgba(15, 23, 42, 0.05)",
           overflow: "hidden",
+          touchAction: "none",
+          userSelect: "none",
           "&::after": {
             content: '""',
             position: "absolute",
@@ -168,12 +176,12 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
       </Box>
     </Tooltip>
   );
-}
+});
 
 const GROUPS: FieldCategory[] = ["Basic", "Choice"];
 
 function FieldPalette() {
-  const addField = useBuilderStore((s) => s.addField);
+  const addField = useBuilderStore((state) => state.addField);
 
   return (
     <PanelSection
@@ -204,6 +212,7 @@ function FieldPalette() {
             const items = fieldCatalog.filter(
               (item) => item.category === group,
             );
+
             return (
               <Stack key={group} spacing={0.9}>
                 <Stack
@@ -245,4 +254,4 @@ function FieldPalette() {
   );
 }
 
-export default FieldPalette;
+export default memo(FieldPalette);
