@@ -10,9 +10,11 @@ import {
   Radio,
   RadioGroup,
   Select,
+  SelectChangeEvent,
   TextField,
   Typography,
 } from "@mui/material";
+import { ChangeEvent } from "react";
 import { FormField } from "../../types/form";
 
 // ─────────────────────────────────────────────
@@ -33,6 +35,16 @@ export interface FieldRendererProps {
    * Defaults to `"1 / -1"` for full-width fields and `"auto"` for half-width.
    */
   gridColumn?: string;
+  /**
+   * Optional controlled value used by interactive preview/demo mode.
+   * Only checkbox and radio currently consume this prop.
+   */
+  value?: string | boolean;
+  /**
+   * Optional change handler used by interactive preview/demo mode.
+   * Only checkbox and radio currently emit changes through this callback.
+   */
+  onChange?: (value: string | boolean) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -72,27 +84,36 @@ function buildLabel(label: string, required: boolean) {
  * Supports all 10 field types: text, email, phone, password, number, date,
  * textarea, select, radio, checkbox.
  *
- * Use `readOnly={true}` for preview panels and `readOnly={false}` for
- * interactive form submissions (future feature).
- *
- * @example
- * // In a preview panel:
- * <FieldRenderer field={field} readOnly />
- *
- * @example
- * // In a live form (future):
- * <FieldRenderer field={field} readOnly={false} />
+ * Use [`readOnly`](src/components/shared/FieldRenderer.tsx:25) for preview panels and [`value`](src/components/shared/FieldRenderer.tsx:35) / [`onChange`](src/components/shared/FieldRenderer.tsx:40)
+ * for interactive demo controls.
  */
 function FieldRenderer({
   field,
   readOnly = true,
   gridColumn,
+  value,
+  onChange,
 }: FieldRendererProps) {
   const col = gridColumn ?? (field.width === "full" ? "1 / -1" : "auto");
   const label = buildLabel(field.label, field.required);
   const helperText = field.helpText || undefined;
 
-  // ── Textarea ──────────────────────────────
+  const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event.target.checked);
+  };
+
+  const handleRadioChange = (
+    event: ChangeEvent<HTMLInputElement>,
+    nextValue: string,
+  ) => {
+    onChange?.(nextValue || event.target.value);
+  };
+
+  const handleSelectChange = (event: SelectChangeEvent<string>) => {
+    onChange?.(event.target.value);
+  };
+
+  // ── Textarea ───────────────────────────────
   if (field.type === "textarea") {
     return (
       <TextField
@@ -108,14 +129,15 @@ function FieldRenderer({
     );
   }
 
-  // ── Select ────────────────────────────────
+  // ── Select ─────────────────────────────────
   if (field.type === "select") {
     return (
       <FormControl fullWidth sx={{ gridColumn: col }}>
         <InputLabel>{label}</InputLabel>
         <Select
           label={field.label || "Untitled"}
-          defaultValue=""
+          value={typeof value === "string" ? value : ""}
+          onChange={handleSelectChange}
           inputProps={{ readOnly }}
         >
           <MenuItem value="">
@@ -132,7 +154,7 @@ function FieldRenderer({
     );
   }
 
-  // ── Radio group ───────────────────────────
+  // ── Radio group ────────────────────────────
   if (field.type === "radio") {
     return (
       <FormControl sx={{ gridColumn: col }}>
@@ -147,12 +169,17 @@ function FieldRenderer({
         >
           {label}
         </FormLabel>
-        <RadioGroup>
+        <RadioGroup
+          name={field.id}
+          value={typeof value === "string" ? value : ""}
+          onChange={handleRadioChange}
+        >
           {field.options?.map((option) => (
             <FormControlLabel
               key={option.id}
               value={option.value}
-              control={<Radio size="small" readOnly={readOnly} />}
+              disabled={readOnly}
+              control={<Radio size="small" />}
               label={<Typography variant="body2">{option.label}</Typography>}
             />
           ))}
@@ -164,12 +191,19 @@ function FieldRenderer({
     );
   }
 
-  // ── Checkbox ──────────────────────────────
+  // ── Checkbox ───────────────────────────────
   if (field.type === "checkbox") {
     return (
       <FormControl sx={{ gridColumn: col }}>
         <FormControlLabel
-          control={<Checkbox size="small" readOnly={readOnly} />}
+          disabled={readOnly}
+          control={
+            <Checkbox
+              size="small"
+              checked={Boolean(value)}
+              onChange={handleCheckboxChange}
+            />
+          }
           label={
             <Typography variant="body2">
               {field.label || "Untitled"}
@@ -186,7 +220,7 @@ function FieldRenderer({
     );
   }
 
-  // ── Password ──────────────────────────────
+  // ── Password ───────────────────────────────
   if (field.type === "password") {
     return (
       <TextField
@@ -201,7 +235,7 @@ function FieldRenderer({
     );
   }
 
-  // ── Number ────────────────────────────────
+  // ── Number ─────────────────────────────────
   if (field.type === "number") {
     return (
       <TextField
@@ -216,7 +250,7 @@ function FieldRenderer({
     );
   }
 
-  // ── Date ──────────────────────────────────
+  // ── Date ───────────────────────────────────
   if (field.type === "date") {
     return (
       <TextField
@@ -231,7 +265,7 @@ function FieldRenderer({
     );
   }
 
-  // ── Text / Email / Phone (default) ────────
+  // ── Text / Email / Phone (default) ─────────
   const inputType =
     field.type === "email" ? "email" : field.type === "phone" ? "tel" : "text";
 

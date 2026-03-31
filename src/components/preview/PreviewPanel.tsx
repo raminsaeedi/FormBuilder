@@ -1,10 +1,31 @@
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import { alpha, Box, Button, Chip, Stack, Typography } from "@mui/material";
+import { useMemo, useState } from "react";
+import { FormField } from "../../types/form";
 import { useBuilderStore } from "../../store/builderStore";
 import FieldRenderer from "../shared/FieldRenderer";
 import PanelSection from "../shared/PanelSection";
 import ViewportToggle from "../shared/ViewportToggle";
+
+type PreviewFieldValue = string | boolean;
+type PreviewFieldState = Record<string, PreviewFieldValue>;
+
+function buildInitialPreviewState(fields: FormField[]): PreviewFieldState {
+  return fields.reduce<PreviewFieldState>((acc, field) => {
+    if (field.type === "checkbox") {
+      acc[field.id] = false;
+      return acc;
+    }
+
+    if (field.type === "radio") {
+      acc[field.id] = "";
+      return acc;
+    }
+
+    return acc;
+  }, {});
+}
 
 function EmptyPreview() {
   return (
@@ -40,9 +61,44 @@ function EmptyPreview() {
 function PreviewPanel() {
   const form = useBuilderStore((s) => s.form);
   const viewportMode = useBuilderStore((s) => s.viewportMode);
+  const [previewValues, setPreviewValues] = useState<PreviewFieldState>({});
 
   const isMobile = viewportMode === "mobile";
   const requiredCount = form.fields.filter((field) => field.required).length;
+
+  const interactiveFieldIds = useMemo(
+    () =>
+      new Set(
+        form.fields
+          .filter(
+            (field) => field.type === "checkbox" || field.type === "radio",
+          )
+          .map((field) => field.id),
+      ),
+    [form.fields],
+  );
+
+  const mergedPreviewValues = useMemo(() => {
+    const initialState = buildInitialPreviewState(form.fields);
+
+    Object.entries(previewValues).forEach(([fieldId, fieldValue]) => {
+      if (interactiveFieldIds.has(fieldId)) {
+        initialState[fieldId] = fieldValue;
+      }
+    });
+
+    return initialState;
+  }, [form.fields, interactiveFieldIds, previewValues]);
+
+  const handlePreviewValueChange = (
+    fieldId: string,
+    value: PreviewFieldValue,
+  ) => {
+    setPreviewValues((current) => ({
+      ...current,
+      [fieldId]: value,
+    }));
+  };
 
   return (
     <PanelSection
@@ -67,7 +123,7 @@ function PreviewPanel() {
           )}
           <Chip
             icon={<VisibilityRoundedIcon />}
-            label="Read-only"
+            label="Interactive demo"
             size="small"
             variant="outlined"
           />
@@ -224,9 +280,25 @@ function PreviewPanel() {
                         transition: "grid-template-columns 220ms ease",
                       }}
                     >
-                      {form.fields.map((field) => (
-                        <FieldRenderer key={field.id} field={field} readOnly />
-                      ))}
+                      {form.fields.map((field) => {
+                        const isInteractivePreviewField =
+                          field.type === "checkbox" || field.type === "radio";
+
+                        return (
+                          <FieldRenderer
+                            key={field.id}
+                            field={field}
+                            readOnly={!isInteractivePreviewField}
+                            value={mergedPreviewValues[field.id]}
+                            onChange={
+                              isInteractivePreviewField
+                                ? (value) =>
+                                    handlePreviewValueChange(field.id, value)
+                                : undefined
+                            }
+                          />
+                        );
+                      })}
                     </Box>
 
                     <Stack
