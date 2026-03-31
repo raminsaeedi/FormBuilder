@@ -19,63 +19,104 @@ function PanelSection({
   return (
     <Box
       sx={{
+        position: "relative",
         border: "1px solid",
-        borderColor: "divider",
-        borderRadius: "18px",
-        bgcolor: "background.paper",
+        borderColor: alpha("#0f172a", 0.08),
+        borderRadius: "22px",
+        bgcolor: alpha("#ffffff", 0.94),
         overflow: "hidden",
-        boxShadow: "0 2px 16px rgba(15, 23, 42, 0.05)",
+        boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+        backdropFilter: "blur(8px)",
+        "&::before": {
+          content: '""',
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(180deg, rgba(248,250,252,0.72) 0%, rgba(255,255,255,0) 120px)",
+          pointerEvents: "none",
+        },
       }}
     >
-      {/* ── Panel header ── */}
-      <Box
-        sx={{
-          px: 2.5,
-          pt: 2.25,
-          pb: 2,
-          background: `linear-gradient(180deg, ${alpha("#f8faff", 1)} 0%, ${alpha("#ffffff", 1)} 100%)`,
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          spacing={2}
-          alignItems="flex-start"
+      <Box sx={{ position: "relative", zIndex: 1 }}>
+        <Box
+          sx={{
+            px: { xs: 2, md: 2.5 },
+            pt: { xs: 1.9, md: 2.2 },
+            pb: { xs: 1.6, md: 1.85 },
+          }}
         >
-          <Box sx={{ minWidth: 0 }}>
-            {eyebrow && (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            spacing={{ xs: 1.5, sm: 2 }}
+            alignItems={{ xs: "flex-start", sm: "flex-start" }}
+          >
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              {eyebrow && (
+                <Typography
+                  variant="overline"
+                  sx={{
+                    color: "text.secondary",
+                    letterSpacing: "0.12em",
+                    display: "block",
+                    mb: 0.55,
+                  }}
+                >
+                  {eyebrow}
+                </Typography>
+              )}
+
               <Typography
-                variant="overline"
+                variant="h5"
                 sx={{
-                  color: "primary.main",
-                  letterSpacing: "0.12em",
-                  display: "block",
-                  mb: 0.4,
+                  color: "text.primary",
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.015em",
                 }}
               >
-                {eyebrow}
+                {title}
               </Typography>
-            )}
-            <Typography variant="h5">{title}</Typography>
-            {description && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ mt: 0.5, lineHeight: 1.55 }}
+
+              {description && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
+                    mt: 0.7,
+                    lineHeight: 1.65,
+                    maxWidth: 720,
+                  }}
+                >
+                  {description}
+                </Typography>
+              )}
+            </Box>
+
+            {actions && (
+              <Box
+                sx={{
+                  flexShrink: 0,
+                  alignSelf: { xs: "flex-start", sm: "flex-start" },
+                  pt: { xs: 0, sm: 0.15 },
+                }}
               >
-                {description}
-              </Typography>
+                {actions}
+              </Box>
             )}
-          </Box>
-          {actions && <Box sx={{ flexShrink: 0, pt: 0.25 }}>{actions}</Box>}
-        </Stack>
+          </Stack>
+        </Box>
+
+        <Divider sx={{ borderColor: alpha("#0f172a", 0.07) }} />
+
+        <Box
+          sx={{
+            px: { xs: 2, md: 2.5 },
+            py: { xs: 2, md: 2.35 },
+          }}
+        >
+          {children}
+        </Box>
       </Box>
-
-      {/* ── Divider ── */}
-      <Divider />
-
-      {/* ── Panel body ── */}
-      <Box sx={{ p: 2.5 }}>{children}</Box>
     </Box>
   );
 }

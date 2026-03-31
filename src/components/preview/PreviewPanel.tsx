@@ -10,13 +10,13 @@ function EmptyPreview() {
   return (
     <Box
       sx={{
-        py: 6,
-        px: 2,
+        py: { xs: 5, md: 6 },
+        px: { xs: 2, md: 2.5 },
         textAlign: "center",
         border: "1px dashed",
-        borderColor: "divider",
-        borderRadius: "16px",
-        bgcolor: alpha("#f8fafc", 0.9),
+        borderColor: alpha("#0f172a", 0.12),
+        borderRadius: "18px",
+        bgcolor: alpha("#f8fafc", 0.82),
       }}
     >
       <VisibilityRoundedIcon
@@ -25,9 +25,13 @@ function EmptyPreview() {
       <Typography variant="subtitle2" fontWeight={700}>
         Preview will appear here
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        Add fields in the builder to review spacing, hierarchy, and form flow in
-        a realistic layout.
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ mt: 0.6, maxWidth: 420, mx: "auto", lineHeight: 1.7 }}
+      >
+        Add fields in the builder to review spacing, hierarchy and form flow in
+        a more realistic production-style layout.
       </Typography>
     </Box>
   );
@@ -44,7 +48,7 @@ function PreviewPanel() {
     <PanelSection
       eyebrow="Preview"
       title="Rendered form preview"
-      description="Review the current form in a production-style frame to validate rhythm, readability, and mobile behavior."
+      description="Review the current form in a balanced production-style frame to validate rhythm, readability and responsive behaviour."
       actions={
         <Stack
           direction="row"
@@ -72,170 +76,191 @@ function PreviewPanel() {
     >
       <Stack spacing={2.5}>
         <Stack
-          direction={{ xs: "column", sm: "row" }}
+          direction={{ xs: "column", md: "row" }}
           justifyContent="space-between"
-          alignItems={{ xs: "flex-start", sm: "center" }}
+          alignItems={{ xs: "flex-start", md: "center" }}
           spacing={1.5}
         >
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="subtitle2" fontWeight={700}>
+          <Stack spacing={0.45} sx={{ minWidth: 0, maxWidth: 760 }}>
+            <Typography variant="subtitle1" fontWeight={700}>
               {form.name}
             </Typography>
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ mt: 0.35 }}
+              sx={{ lineHeight: 1.7 }}
             >
               {form.description ||
-                "A live rendering of the current form structure with production-oriented spacing and controls."}
+                "A live rendering of the current form structure with production-oriented spacing and restrained visual treatment."}
             </Typography>
-          </Box>
+          </Stack>
 
           <ViewportToggle />
         </Stack>
 
         <Box
           sx={{
-            borderRadius: "20px",
+            borderRadius: "24px",
             border: "1px solid",
-            borderColor: "divider",
-            bgcolor: alpha("#f8fafc", 0.92),
-            p: { xs: 1.25, sm: 1.5 },
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+            borderColor: alpha("#0f172a", 0.08),
+            bgcolor: alpha("#f8fafc", 0.72),
+            p: { xs: 1.25, sm: 1.5, md: 1.75 },
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              px: 1.25,
-              py: 1,
-              borderRadius: "14px 14px 0 0",
+              borderRadius: "18px",
               border: "1px solid",
-              borderColor: alpha("#cbd5e1", 0.8),
-              borderBottom: "none",
-              bgcolor: alpha("#e2e8f0", 0.45),
-            }}
-          >
-            <Stack direction="row" spacing={0.75} alignItems="center">
-              <Box sx={{ display: "flex", gap: 0.5 }}>
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    bgcolor: "#f87171",
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    bgcolor: "#fbbf24",
-                  }}
-                />
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    bgcolor: "#34d399",
-                  }}
-                />
-              </Box>
-              <Typography variant="caption" color="text.secondary">
-                {isMobile ? "Mobile viewport" : "Desktop viewport"}
-              </Typography>
-            </Stack>
-
-            <Chip
-              size="small"
-              label={isMobile ? "390 px" : "Responsive grid"}
-              variant="outlined"
-            />
-          </Box>
-
-          <Box
-            sx={{
-              mx: "auto",
-              width: "100%",
-              maxWidth: isMobile ? 390 : "100%",
-              minHeight: 320,
-              transition: "max-width 220ms ease",
+              borderColor: alpha("#cbd5e1", 0.9),
+              bgcolor: alpha("#ffffff", 0.88),
+              boxShadow: "0 12px 30px rgba(15, 23, 42, 0.05)",
+              overflow: "hidden",
             }}
           >
             <Box
               sx={{
-                border: "1px solid",
-                borderColor: alpha("#cbd5e1", 0.8),
-                borderRadius: isMobile ? "0 0 18px 18px" : "0 0 20px 20px",
-                bgcolor: "background.paper",
-                px: { xs: 1.25, sm: 2.25, md: 2.5 },
-                py: { xs: 1.5, sm: 2, md: 2.25 },
-                boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                px: { xs: 1.25, sm: 1.5 },
+                py: 1,
+                borderBottom: "1px solid",
+                borderColor: alpha("#cbd5e1", 0.75),
+                bgcolor: alpha("#f8fafc", 0.92),
               }}
             >
-              {form.fields.length === 0 ? (
-                <EmptyPreview />
-              ) : (
-                <Stack spacing={2.25}>
+              <Stack direction="row" spacing={0.9} alignItems="center">
+                <Box sx={{ display: "flex", gap: 0.5 }}>
                   <Box
                     sx={{
-                      pb: 1.25,
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: "#f87171",
                     }}
-                  >
-                    <Typography variant="h5" sx={{ mb: 0.5 }}>
-                      {form.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {form.description ||
-                        "Complete the fields below to continue. This preview reflects the current builder configuration."}
-                    </Typography>
-                  </Box>
-
+                  />
                   <Box
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns: isMobile
-                        ? "1fr"
-                        : "repeat(2, minmax(0, 1fr))",
-                      gap: 2,
-                      transition: "grid-template-columns 220ms ease",
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: "#fbbf24",
                     }}
-                  >
-                    {form.fields.map((field) => (
-                      <FieldRenderer key={field.id} field={field} readOnly />
-                    ))}
-                  </Box>
+                  />
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: "#34d399",
+                    }}
+                  />
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  {isMobile ? "Mobile viewport" : "Desktop viewport"}
+                </Typography>
+              </Stack>
 
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={1.25}
-                    sx={{ pt: 0.5 }}
-                  >
-                    <Button
-                      variant="contained"
-                      startIcon={<SendRoundedIcon />}
-                      sx={{ alignSelf: "flex-start" }}
+              <Chip
+                size="small"
+                label={isMobile ? "390 px" : "Responsive grid"}
+                variant="outlined"
+              />
+            </Box>
+
+            <Box
+              sx={{
+                mx: "auto",
+                width: "100%",
+                maxWidth: isMobile ? 390 : 1120,
+                minHeight: 340,
+                transition: "max-width 220ms ease",
+                px: { xs: 1, sm: 1.5, md: 2 },
+                py: { xs: 1.25, sm: 1.5, md: 1.75 },
+              }}
+            >
+              <Box
+                sx={{
+                  border: "1px solid",
+                  borderColor: alpha("#cbd5e1", 0.8),
+                  borderRadius: isMobile ? "18px" : "20px",
+                  bgcolor: "background.paper",
+                  px: { xs: 1.25, sm: 2.25, md: 2.75 },
+                  py: { xs: 1.5, sm: 2.25, md: 2.5 },
+                  boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+                }}
+              >
+                {form.fields.length === 0 ? (
+                  <EmptyPreview />
+                ) : (
+                  <Stack spacing={2.5}>
+                    <Box
+                      sx={{
+                        pb: 1.5,
+                        borderBottom: "1px solid",
+                        borderColor: alpha("#0f172a", 0.08),
+                      }}
                     >
-                      Submit form
-                    </Button>
-                    <Button variant="outlined" sx={{ alignSelf: "flex-start" }}>
-                      Cancel
-                    </Button>
+                      <Typography variant="h5" sx={{ mb: 0.6 }}>
+                        {form.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ lineHeight: 1.7 }}
+                      >
+                        {form.description ||
+                          "Complete the fields below to continue. This preview reflects the current builder configuration."}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: isMobile
+                          ? "1fr"
+                          : "repeat(2, minmax(0, 1fr))",
+                        gap: { xs: 1.75, sm: 2, md: 2.25 },
+                        transition: "grid-template-columns 220ms ease",
+                      }}
+                    >
+                      {form.fields.map((field) => (
+                        <FieldRenderer key={field.id} field={field} readOnly />
+                      ))}
+                    </Box>
+
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      spacing={1.25}
+                      sx={{ pt: 0.75 }}
+                    >
+                      <Button
+                        variant="contained"
+                        startIcon={<SendRoundedIcon />}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Submit form
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        sx={{ alignSelf: "flex-start" }}
+                      >
+                        Cancel
+                      </Button>
+                    </Stack>
                   </Stack>
-                </Stack>
-              )}
+                )}
+              </Box>
             </Box>
           </Box>
         </Box>
 
         {requiredCount > 0 && (
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ lineHeight: 1.6 }}
+          >
             <Box component="span" sx={{ color: "error.main", fontWeight: 700 }}>
               *
             </Box>{" "}
