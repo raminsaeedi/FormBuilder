@@ -14,123 +14,163 @@ import {
   Typography,
 } from "@mui/material";
 import { ReactNode } from "react";
-import PanelSection from "../shared/PanelSection";
-import ScoreCards from "./ScoreCards";
 import { useBuilderStore } from "../../store/builderStore";
 import { IssueSeverity, UxIssue } from "../../types/form";
-
-// ─────────────────────────────────────────────
-// Severity configuration
-// ─────────────────────────────────────────────
+import PanelSection from "../shared/PanelSection";
+import ScoreCards from "./ScoreCards";
 
 interface SeverityConfig {
   color: "error" | "warning" | "info";
   muiColor: string;
-  bgColor: string;
+  softBg: string;
   borderColor: string;
   icon: ReactNode;
   label: string;
-  order: number;
 }
 
 const severityConfig: Record<IssueSeverity, SeverityConfig> = {
   critical: {
     color: "error",
-    muiColor: "#dc2626",
-    bgColor: alpha("#dc2626", 0.04),
-    borderColor: alpha("#dc2626", 0.2),
+    muiColor: "#b91c1c",
+    softBg: alpha("#b91c1c", 0.05),
+    borderColor: alpha("#b91c1c", 0.14),
     icon: <ErrorOutlineRoundedIcon fontSize="small" />,
     label: "Critical",
-    order: 0,
   },
   warning: {
     color: "warning",
-    muiColor: "#d97706",
-    bgColor: alpha("#d97706", 0.04),
-    borderColor: alpha("#d97706", 0.2),
+    muiColor: "#b45309",
+    softBg: alpha("#b45309", 0.05),
+    borderColor: alpha("#b45309", 0.14),
     icon: <WarningAmberRoundedIcon fontSize="small" />,
     label: "Warning",
-    order: 1,
   },
   info: {
     color: "info",
-    muiColor: "#0891b2",
-    bgColor: alpha("#0891b2", 0.04),
-    borderColor: alpha("#0891b2", 0.2),
+    muiColor: "#0f766e",
+    softBg: alpha("#0f766e", 0.05),
+    borderColor: alpha("#0f766e", 0.14),
     icon: <InfoOutlinedIcon fontSize="small" />,
     label: "Suggestion",
-    order: 2,
   },
 };
 
-// ─────────────────────���───────────────────────
-// Score bar
-// ─────────────────────────────────────────────
+function getScoreTone(score: number) {
+  if (score >= 80) {
+    return {
+      color: "success" as const,
+      accent: "#0f766e",
+      label: "Healthy baseline",
+      description:
+        "The current form is in a strong state with only minor optimisation potential.",
+    };
+  }
 
-function ScoreBar({ score }: { score: number }) {
-  const barColor = score >= 80 ? "success" : score >= 55 ? "warning" : "error";
+  if (score >= 55) {
+    return {
+      color: "warning" as const,
+      accent: "#b45309",
+      label: "Moderate friction",
+      description:
+        "The form is usable, but several improvements would reduce hesitation and drop-off.",
+    };
+  }
 
-  const scoreLabel =
-    score >= 80
-      ? "Looking good — minor polish may still help"
-      : score >= 55
-        ? "Room to improve — review the issues below"
-        : "High friction risk — address critical issues first";
+  return {
+    color: "error" as const,
+    accent: "#b91c1c",
+    label: "High friction risk",
+    description:
+      "The current structure is likely to create avoidable friction and should be refined before release.",
+  };
+}
 
-  const scoreColor =
-    score >= 80 ? "success.main" : score >= 55 ? "warning.main" : "error.main";
+function ScoreOverview({ score }: { score: number }) {
+  const tone = getScoreTone(score);
 
   return (
     <Box
       sx={{
-        p: 2,
-        borderRadius: "12px",
+        borderRadius: "18px",
         border: "1px solid",
-        borderColor: "divider",
-        bgcolor: alpha("#f8faff", 0.8),
+        borderColor: alpha("#0f172a", 0.08),
+        bgcolor: alpha("#f8fafc", 0.9),
+        px: { xs: 2, sm: 2.25 },
+        py: { xs: 1.75, sm: 2 },
       }}
     >
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 1.25 }}
-      >
-        <Stack spacing={0.2}>
-          <Typography variant="subtitle2">Overall UX score</Typography>
-          <Typography variant="caption" color="text.secondary">
-            {scoreLabel}
-          </Typography>
-        </Stack>
-        <Typography variant="h5" fontWeight={800} color={scoreColor}>
-          {score}
-          <Typography
-            component="span"
-            variant="caption"
-            color="text.disabled"
-            fontWeight={400}
+      <Stack spacing={1.5}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          justifyContent="space-between"
+          alignItems={{ xs: "flex-start", sm: "center" }}
+          spacing={1.25}
+        >
+          <Stack spacing={0.45} sx={{ minWidth: 0 }}>
+            <Typography variant="overline" color="text.secondary">
+              Overall assessment
+            </Typography>
+            <Typography variant="subtitle1" fontWeight={700}>
+              {tone.label}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ maxWidth: 560 }}
+            >
+              {tone.description}
+            </Typography>
+          </Stack>
+
+          <Box
+            sx={{
+              px: 1.5,
+              py: 1,
+              borderRadius: "14px",
+              border: "1px solid",
+              borderColor: alpha(tone.accent, 0.16),
+              bgcolor: alpha(tone.accent, 0.05),
+              minWidth: 108,
+            }}
           >
-            /100
-          </Typography>
-        </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 0.25 }}
+            >
+              Score
+            </Typography>
+            <Typography
+              variant="h5"
+              fontWeight={800}
+              sx={{ color: tone.accent, lineHeight: 1 }}
+            >
+              {score}
+              <Typography
+                component="span"
+                variant="caption"
+                sx={{ color: "text.disabled", fontWeight: 500, ml: 0.25 }}
+              >
+                /100
+              </Typography>
+            </Typography>
+          </Box>
+        </Stack>
+
+        <LinearProgress
+          variant="determinate"
+          value={score}
+          color={tone.color}
+          sx={{
+            height: 8,
+            borderRadius: 999,
+            bgcolor: alpha("#94a3b8", 0.14),
+          }}
+        />
       </Stack>
-      <LinearProgress
-        variant="determinate"
-        value={score}
-        color={barColor}
-        sx={{
-          height: 7,
-          borderRadius: 8,
-          bgcolor: "rgba(148, 163, 184, 0.12)",
-        }}
-      />
     </Box>
   );
 }
-
-// ─────────────────────────────────────────────
-// Summary chips
-// ─────────────────────────────────────────────
 
 function SummaryChips({
   totalFields,
@@ -144,7 +184,7 @@ function SummaryChips({
   longLabels: number;
 }) {
   return (
-    <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+    <Stack direction="row" spacing={0.9} flexWrap="wrap" useFlexGap>
       <Chip
         label={`${totalFields} field${totalFields !== 1 ? "s" : ""}`}
         size="small"
@@ -165,17 +205,13 @@ function SummaryChips({
         <Chip
           label={`${longLabels} long label${longLabels !== 1 ? "s" : ""}`}
           size="small"
-          color="warning"
           variant="outlined"
+          color="warning"
         />
       )}
     </Stack>
   );
 }
-
-// ─────────────────────────────────────────────
-// Single issue card
-// ─────────────────────────────────────────────
 
 interface IssueCardProps {
   issue: UxIssue;
@@ -188,144 +224,187 @@ function IssueCard({ issue, fieldLabel }: IssueCardProps) {
   return (
     <Box
       sx={{
-        display: "flex",
-        borderRadius: "10px",
+        borderRadius: "16px",
         border: "1px solid",
         borderColor: cfg.borderColor,
-        bgcolor: cfg.bgColor,
+        bgcolor: "background.paper",
+        boxShadow: "0 4px 18px rgba(15, 23, 42, 0.04)",
         overflow: "hidden",
       }}
     >
-      {/* Left accent bar */}
       <Box
         sx={{
-          width: 3,
-          flexShrink: 0,
+          height: 3,
           bgcolor: cfg.muiColor,
-          borderRadius: "10px 0 0 10px",
         }}
       />
 
-      {/* Content */}
-      <Box sx={{ p: 1.5, flex: 1, minWidth: 0 }}>
-        <Stack spacing={0.75}>
-          {/* Header: title + severity chip */}
+      <Box sx={{ px: 2, py: 1.75 }}>
+        <Stack spacing={1.25}>
           <Stack
-            direction="row"
+            direction={{ xs: "column", sm: "row" }}
             justifyContent="space-between"
-            alignItems="flex-start"
+            alignItems={{ xs: "flex-start", sm: "center" }}
             spacing={1}
           >
             <Stack
               direction="row"
-              spacing={0.75}
-              alignItems="center"
+              spacing={1}
+              alignItems="flex-start"
               sx={{ minWidth: 0 }}
             >
               <Box
                 sx={{
-                  color: cfg.muiColor,
+                  width: 30,
+                  height: 30,
+                  borderRadius: "10px",
                   display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: cfg.muiColor,
+                  bgcolor: cfg.softBg,
+                  border: "1px solid",
+                  borderColor: cfg.borderColor,
                   flexShrink: 0,
                 }}
               >
                 {cfg.icon}
               </Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ lineHeight: 1.3, wordBreak: "break-word" }}
-              >
-                {issue.title}
-              </Typography>
+
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{ lineHeight: 1.35, wordBreak: "break-word" }}
+                >
+                  {issue.title}
+                </Typography>
+                {fieldLabel && (
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 0.35 }}
+                  >
+                    Affects field:{" "}
+                    <Box
+                      component="span"
+                      sx={{ color: "text.primary", fontWeight: 600 }}
+                    >
+                      {fieldLabel}
+                    </Box>
+                  </Typography>
+                )}
+              </Box>
             </Stack>
+
             <Chip
               label={cfg.label}
               size="small"
-              color={cfg.color}
+              variant="outlined"
               sx={{
-                flexShrink: 0,
-                height: 18,
-                fontSize: "0.65rem",
+                color: cfg.muiColor,
+                borderColor: cfg.borderColor,
+                bgcolor: cfg.softBg,
                 fontWeight: 700,
+                flexShrink: 0,
               }}
             />
           </Stack>
 
-          {/* Field reference */}
-          {fieldLabel && (
-            <Typography variant="caption" color="text.disabled">
-              Affects field: <strong>{fieldLabel}</strong>
-            </Typography>
-          )}
-
-          {/* Description */}
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ lineHeight: 1.5 }}
+            sx={{ lineHeight: 1.65 }}
           >
             {issue.description}
           </Typography>
 
-          {/* Recommendation */}
-          <Stack direction="row" spacing={0.75} alignItems="flex-start">
-            <LightbulbOutlinedIcon
-              sx={{
-                fontSize: "0.85rem",
-                color: "text.disabled",
-                mt: 0.2,
-                flexShrink: 0,
-              }}
-            />
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ lineHeight: 1.4 }}
-            >
-              {issue.recommendation}
-            </Typography>
-          </Stack>
+          <Box
+            sx={{
+              borderRadius: "12px",
+              border: "1px solid",
+              borderColor: alpha("#0f172a", 0.08),
+              bgcolor: alpha("#f8fafc", 0.8),
+              px: 1.25,
+              py: 1,
+            }}
+          >
+            <Stack direction="row" spacing={0.9} alignItems="flex-start">
+              <LightbulbOutlinedIcon
+                sx={{
+                  fontSize: "0.95rem",
+                  color: cfg.muiColor,
+                  mt: 0.15,
+                  flexShrink: 0,
+                }}
+              />
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{ display: "block", color: "text.secondary", mb: 0.2 }}
+                >
+                  Recommendation
+                </Typography>
+                <Typography variant="body2" sx={{ lineHeight: 1.55 }}>
+                  {issue.recommendation}
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
         </Stack>
       </Box>
     </Box>
   );
 }
 
-// ─────────────────────────────────────────────
-// No issues state
-// ─────────────────────────────────────────────
-
 function NoIssues() {
   return (
-    <Stack
-      direction="row"
-      spacing={1.25}
-      alignItems="center"
+    <Box
       sx={{
-        p: 1.75,
-        borderRadius: "10px",
-        bgcolor: alpha("#0f766e", 0.06),
+        borderRadius: "18px",
         border: "1px solid",
-        borderColor: alpha("#0f766e", 0.18),
+        borderColor: alpha("#0f766e", 0.16),
+        bgcolor: alpha("#0f766e", 0.05),
+        px: { xs: 2, sm: 2.25 },
+        py: { xs: 2, sm: 2.25 },
       }}
     >
-      <CheckCircleOutlineRoundedIcon sx={{ color: "#0f766e", flexShrink: 0 }} />
-      <Box>
-        <Typography variant="subtitle2" sx={{ color: "#0f766e" }}>
-          No issues found — great work!
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          This form passes all heuristic checks. Keep labels concise and help
-          texts informative as you add more fields.
-        </Typography>
-      </Box>
-    </Stack>
+      <Stack direction="row" spacing={1.25} alignItems="flex-start">
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: "12px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#0f766e",
+            bgcolor: alpha("#0f766e", 0.08),
+            border: "1px solid",
+            borderColor: alpha("#0f766e", 0.14),
+            flexShrink: 0,
+          }}
+        >
+          <CheckCircleOutlineRoundedIcon fontSize="small" />
+        </Box>
+
+        <Stack spacing={0.45}>
+          <Typography variant="subtitle2" sx={{ color: "#0f766e" }}>
+            No issues detected
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ lineHeight: 1.65 }}
+          >
+            This form currently passes the active heuristic checks. Maintain
+            concise labels, clear helper text and a restrained number of
+            required inputs as the form evolves.
+          </Typography>
+        </Stack>
+      </Stack>
+    </Box>
   );
 }
-
-// ─────────────────────────────────────────────
-// Issue group (by severity)
-// ─────────────────────────────────────────────
 
 interface IssueGroupProps {
   severity: IssueSeverity;
@@ -335,34 +414,60 @@ interface IssueGroupProps {
 
 function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
   if (issues.length === 0) return null;
+
   const cfg = severityConfig[severity];
 
   return (
-    <Stack spacing={0.75}>
-      {/* Group header */}
-      <Stack direction="row" alignItems="center" spacing={1}>
-        <Box sx={{ color: cfg.muiColor, display: "inline-flex" }}>
-          {cfg.icon}
-        </Box>
-        <Typography
-          variant="overline"
-          sx={{ color: cfg.muiColor, letterSpacing: "0.1em", lineHeight: 1 }}
-        >
-          {cfg.label}
-        </Typography>
-        <Box
-          sx={{ flex: 1, height: "1px", bgcolor: alpha(cfg.muiColor, 0.18) }}
+    <Stack spacing={1.1}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{
+          px: 0.25,
+        }}
+      >
+        <Stack direction="row" spacing={0.9} alignItems="center">
+          <Box
+            sx={{
+              width: 28,
+              height: 28,
+              borderRadius: "9px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: cfg.muiColor,
+              bgcolor: cfg.softBg,
+              border: "1px solid",
+              borderColor: cfg.borderColor,
+            }}
+          >
+            {cfg.icon}
+          </Box>
+          <Box>
+            <Typography variant="subtitle2" sx={{ color: "text.primary" }}>
+              {cfg.label}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {issues.length} item{issues.length !== 1 ? "s" : ""}
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Chip
+          label={`${issues.length}`}
+          size="small"
+          variant="outlined"
+          sx={{
+            color: cfg.muiColor,
+            borderColor: cfg.borderColor,
+            bgcolor: cfg.softBg,
+            fontWeight: 700,
+          }}
         />
-        <Typography
-          variant="caption"
-          sx={{ color: cfg.muiColor, fontWeight: 700 }}
-        >
-          {issues.length}
-        </Typography>
       </Stack>
 
-      {/* Issue cards */}
-      <Stack spacing={0.6}>
+      <Stack spacing={1}>
         {issues.map((issue) => (
           <IssueCard
             key={issue.id}
@@ -377,9 +482,48 @@ function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────
+function IssuesSectionHeader({
+  totalIssues,
+  criticalCount,
+}: {
+  totalIssues: number;
+  criticalCount: number;
+}) {
+  return (
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      justifyContent="space-between"
+      alignItems={{ xs: "flex-start", sm: "center" }}
+      spacing={1.25}
+    >
+      <Stack spacing={0.45}>
+        <Typography variant="overline" color="text.secondary">
+          Findings
+        </Typography>
+        <Typography variant="subtitle1" fontWeight={700}>
+          Validation issues
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ maxWidth: 620 }}
+        >
+          Review the findings below in order of severity. Resolve critical
+          issues first, then reduce warning-level friction and informational
+          suggestions.
+        </Typography>
+      </Stack>
+
+      <Chip
+        label={`${totalIssues} issue${totalIssues !== 1 ? "s" : ""}`}
+        size="small"
+        color={criticalCount > 0 ? "error" : "warning"}
+        variant="outlined"
+        sx={{ fontWeight: 700, flexShrink: 0 }}
+      />
+    </Stack>
+  );
+}
 
 function UxAnalysisPanel() {
   const analysis = useBuilderStore((s) => s.analysisResult);
@@ -390,17 +534,21 @@ function UxAnalysisPanel() {
   ) as Record<string, string>;
 
   const criticalIssues = analysis.issues.filter(
-    (i) => i.severity === "critical",
+    (issue) => issue.severity === "critical",
   );
-  const warningIssues = analysis.issues.filter((i) => i.severity === "warning");
-  const infoIssues = analysis.issues.filter((i) => i.severity === "info");
+  const warningIssues = analysis.issues.filter(
+    (issue) => issue.severity === "warning",
+  );
+  const infoIssues = analysis.issues.filter(
+    (issue) => issue.severity === "info",
+  );
   const totalIssues = analysis.issues.length;
 
   return (
     <PanelSection
       eyebrow="Analysis"
       title="UX validation"
-      description="Heuristic checks that surface usability risk before your users encounter it."
+      description="Structured heuristic feedback for evaluating form quality, friction and completion risk."
       actions={
         <Chip
           icon={<InsightsRoundedIcon />}
@@ -417,73 +565,72 @@ function UxAnalysisPanel() {
         />
       }
     >
-      <Stack spacing={2.5}>
-        {/* ── Score cards ── */}
-        <ScoreCards />
+      <Stack spacing={3}>
+        <Box
+          sx={{
+            borderRadius: "20px",
+            border: "1px solid",
+            borderColor: alpha("#0f172a", 0.08),
+            bgcolor: alpha("#f8fafc", 0.55),
+            px: { xs: 1.5, sm: 1.75 },
+            py: { xs: 1.5, sm: 1.75 },
+          }}
+        >
+          <Stack spacing={1.75}>
+            <Stack spacing={0.45}>
+              <Typography variant="overline" color="text.secondary">
+                Score summary
+              </Typography>
+              <Typography variant="subtitle1" fontWeight={700}>
+                Quality indicators
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                A compact view of the most important quality signals for the
+                current form configuration.
+              </Typography>
+            </Stack>
 
-        {/* ── Score bar ── */}
-        <ScoreBar score={analysis.score} />
-
-        {/* ── Summary chips ── */}
-        <SummaryChips
-          totalFields={analysis.summary.totalFields}
-          requiredFields={analysis.summary.requiredFields}
-          optionalFields={analysis.summary.optionalFields}
-          longLabels={analysis.summary.longLabels}
-        />
+            <ScoreCards />
+            <ScoreOverview score={analysis.score} />
+            <SummaryChips
+              totalFields={analysis.summary.totalFields}
+              requiredFields={analysis.summary.requiredFields}
+              optionalFields={analysis.summary.optionalFields}
+              longLabels={analysis.summary.longLabels}
+            />
+          </Stack>
+        </Box>
 
         <Divider />
 
-        {/* ── Issues section header ── */}
-        <Stack spacing={0.4}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Stack spacing={0.1}>
-              <Typography variant="subtitle2">Detected issues</Typography>
-              {totalIssues > 0 && (
-                <Typography variant="caption" color="text.secondary">
-                  Fix critical issues first — they have the highest impact on
-                  completion rates.
-                </Typography>
-              )}
-            </Stack>
-            {totalIssues > 0 && (
-              <Chip
-                label={`${totalIssues} issue${totalIssues !== 1 ? "s" : ""}`}
-                size="small"
-                color={criticalIssues.length > 0 ? "error" : "warning"}
-                variant="outlined"
-                sx={{ height: 20, fontSize: "0.65rem", flexShrink: 0, ml: 1 }}
-              />
-            )}
-          </Stack>
-        </Stack>
+        <Stack spacing={1.75}>
+          <IssuesSectionHeader
+            totalIssues={totalIssues}
+            criticalCount={criticalIssues.length}
+          />
 
-        {/* ── Issues list or success state ── */}
-        {totalIssues === 0 ? (
-          <NoIssues />
-        ) : (
-          <Stack spacing={2}>
-            <IssueGroup
-              severity="critical"
-              issues={criticalIssues}
-              fieldLabelById={fieldLabelById}
-            />
-            <IssueGroup
-              severity="warning"
-              issues={warningIssues}
-              fieldLabelById={fieldLabelById}
-            />
-            <IssueGroup
-              severity="info"
-              issues={infoIssues}
-              fieldLabelById={fieldLabelById}
-            />
-          </Stack>
-        )}
+          {totalIssues === 0 ? (
+            <NoIssues />
+          ) : (
+            <Stack spacing={2.25}>
+              <IssueGroup
+                severity="critical"
+                issues={criticalIssues}
+                fieldLabelById={fieldLabelById}
+              />
+              <IssueGroup
+                severity="warning"
+                issues={warningIssues}
+                fieldLabelById={fieldLabelById}
+              />
+              <IssueGroup
+                severity="info"
+                issues={infoIssues}
+                fieldLabelById={fieldLabelById}
+              />
+            </Stack>
+          )}
+        </Stack>
       </Stack>
     </PanelSection>
   );

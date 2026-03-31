@@ -13,10 +13,6 @@ import {
 import { ReactNode } from "react";
 import { useBuilderStore } from "../../store/builderStore";
 
-// ─────────────────────────────────────────────
-// Score derivation helpers
-// ─────────────────────────────────────────────
-
 function deriveScores(
   uxScore: number,
   requiredFields: number,
@@ -38,12 +34,9 @@ function deriveScores(
     30,
     Math.min(100, 100 - longLabels * 8 - Math.max(0, totalFields - 5) * 4),
   );
+
   return { accessibilityScore, mobileScore, clarityScore };
 }
-
-// ─────────────────────────────────────────────
-// Score colour helpers
-// ─────────────────────────────────────────────
 
 type ScoreLevel = "good" | "medium" | "poor";
 
@@ -55,37 +48,35 @@ function getLevel(score: number): ScoreLevel {
 
 const levelColor: Record<ScoreLevel, string> = {
   good: "#0f766e",
-  medium: "#d97706",
-  poor: "#dc2626",
+  medium: "#b45309",
+  poor: "#b91c1c",
 };
 
 const levelLabel: Record<ScoreLevel, string> = {
-  good: "Good",
-  medium: "Fair",
-  poor: "Poor",
+  good: "Strong",
+  medium: "Moderate",
+  poor: "Needs work",
 };
 
-// ─────────────────────────────────────────────
-// Circular score gauge
-// ─────────────────────────────────────────────
+interface ScoreGaugeProps {
+  score: number;
+}
 
-function ScoreGauge({ score }: { score: number }) {
+function ScoreGauge({ score }: ScoreGaugeProps) {
   const level = getLevel(score);
   const color = levelColor[level];
-  const size = 72;
+  const size = 64;
   const thickness = 4.5;
 
   return (
-    <Box sx={{ position: "relative", display: "inline-flex" }}>
-      {/* Background track */}
+    <Box sx={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
       <CircularProgress
         variant="determinate"
         value={100}
         size={size}
         thickness={thickness}
-        sx={{ color: alpha(color, 0.1), position: "absolute" }}
+        sx={{ color: alpha(color, 0.12), position: "absolute" }}
       />
-      {/* Foreground value */}
       <CircularProgress
         variant="determinate"
         value={score}
@@ -93,34 +84,34 @@ function ScoreGauge({ score }: { score: number }) {
         thickness={thickness}
         sx={{ color }}
       />
-      {/* Score label */}
       <Box
         sx={{
-          top: 0,
-          left: 0,
-          bottom: 0,
-          right: 0,
           position: "absolute",
+          inset: 0,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Typography
-          variant="subtitle2"
-          fontWeight={800}
-          sx={{ color, lineHeight: 1, fontSize: "0.85rem" }}
-        >
-          {score}
-        </Typography>
+        <Stack spacing={0.1} alignItems="center">
+          <Typography
+            variant="subtitle2"
+            fontWeight={800}
+            sx={{ color, lineHeight: 1, fontSize: "0.9rem" }}
+          >
+            {score}
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ color: "text.disabled", lineHeight: 1, fontSize: "0.62rem" }}
+          >
+            /100
+          </Typography>
+        </Stack>
       </Box>
     </Box>
   );
 }
-
-// ─────────────────────────────────────────────
-// Single score card
-// ─────────────────────────────────────────────
 
 interface ScoreCardProps {
   icon: ReactNode;
@@ -145,83 +136,96 @@ function ScoreCard({
     <Tooltip title={tooltip} arrow placement="top">
       <Box
         sx={{
-          flex: "1 1 140px",
-          minWidth: 130,
-          minHeight: 200,
-          p: 2,
-          borderRadius: "12px",
+          minWidth: 220,
+          flex: "0 0 220px",
+          borderRadius: "16px",
           border: "1px solid",
-          borderColor: alpha(color, 0.18),
-          bgcolor: alpha(color, 0.03),
+          borderColor: alpha("#0f172a", 0.08),
+          bgcolor: "background.paper",
+          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.05)",
+          px: 2,
+          py: 1.75,
           transition:
-            "border-color 200ms ease, background-color 200ms ease, box-shadow 200ms ease",
+            "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
           cursor: "default",
           "&:hover": {
-            borderColor: alpha(color, 0.35),
-            bgcolor: alpha(color, 0.06),
-            boxShadow: `0 4px 20px ${alpha(color, 0.12)}`,
+            borderColor: alpha(color, 0.22),
+            boxShadow: `0 12px 28px ${alpha(color, 0.1)}`,
+            transform: "translateY(-1px)",
           },
         }}
       >
-        <Stack spacing={1.25} alignItems="center" textAlign="center">
-          {/* Gauge */}
-          <ScoreGauge score={score} />
+        <Stack spacing={1.5}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="flex-start"
+            spacing={1.5}
+          >
+            <Stack spacing={0.75} sx={{ minWidth: 0 }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "10px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color,
+                  bgcolor: alpha(color, 0.08),
+                  border: "1px solid",
+                  borderColor: alpha(color, 0.14),
+                  "& svg": { fontSize: "1rem" },
+                }}
+              >
+                {icon}
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="subtitle2"
+                  fontWeight={700}
+                  sx={{ lineHeight: 1.25 }}
+                >
+                  {title}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: "block", mt: 0.35, lineHeight: 1.5 }}
+                >
+                  {description}
+                </Typography>
+              </Box>
+            </Stack>
 
-          {/* Icon + title */}
-          <Stack spacing={0.2} alignItems="center">
-            <Box
-              sx={{
-                display: "inline-flex",
-                color,
-                "& svg": { fontSize: "0.95rem" },
-              }}
-            >
-              {icon}
-            </Box>
-            <Typography
-              variant="subtitle2"
-              fontWeight={700}
-              sx={{ lineHeight: 1.2 }}
-            >
-              {title}
-            </Typography>
+            <ScoreGauge score={score} />
           </Stack>
 
-          {/* Level badge */}
           <Box
             sx={{
+              display: "inline-flex",
+              alignSelf: "flex-start",
               px: 1,
-              py: 0.2,
-              borderRadius: "99px",
-              bgcolor: alpha(color, 0.1),
+              py: 0.45,
+              borderRadius: "999px",
+              bgcolor: alpha(color, 0.08),
+              border: "1px solid",
+              borderColor: alpha(color, 0.14),
             }}
           >
             <Typography
               variant="caption"
               fontWeight={700}
-              sx={{ color, letterSpacing: "0.04em", fontSize: "0.68rem" }}
+              sx={{ color, letterSpacing: "0.03em" }}
             >
               {label}
             </Typography>
           </Box>
-
-          {/* Description */}
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ lineHeight: 1.45, fontSize: "0.7rem" }}
-          >
-            {description}
-          </Typography>
         </Stack>
       </Box>
     </Tooltip>
   );
 }
-
-// ─────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────
 
 function ScoreCards() {
   const analysis = useBuilderStore((s) => s.analysisResult);
@@ -236,9 +240,10 @@ function ScoreCards() {
   const cards: ScoreCardProps[] = [
     {
       icon: <AutoAwesomeRoundedIcon />,
-      title: "UX Score",
+      title: "UX score",
       score: analysis.score,
-      description: "Overall usability based on heuristic checks.",
+      description:
+        "Overall usability based on the current heuristic evaluation.",
       tooltip:
         "Composite score from label quality, required-field load, help text coverage and option completeness.",
     },
@@ -246,7 +251,7 @@ function ScoreCards() {
       icon: <AccessibilityNewRoundedIcon />,
       title: "Accessibility",
       score: accessibilityScore,
-      description: "Label clarity and screen-reader friendliness.",
+      description: "Label clarity and assistive-technology friendliness.",
       tooltip:
         "Penalises missing labels and overly long label text that reduces screen-reader comprehension.",
     },
@@ -254,7 +259,7 @@ function ScoreCards() {
       icon: <PhoneAndroidRoundedIcon />,
       title: "Mobile",
       score: mobileScore,
-      description: "Friction level on small-screen devices.",
+      description: "Expected friction level on smaller screens and keyboards.",
       tooltip:
         "Penalises high required-field counts and long forms that create friction on mobile keyboards.",
     },
@@ -262,7 +267,7 @@ function ScoreCards() {
       icon: <SpellcheckRoundedIcon />,
       title: "Clarity",
       score: clarityScore,
-      description: "Label conciseness and form length.",
+      description: "Conciseness of labels and overall cognitive load.",
       tooltip:
         "Penalises long labels (>28 chars) and forms with more than 5 fields that increase cognitive load.",
     },
@@ -271,12 +276,15 @@ function ScoreCards() {
   return (
     <Box
       sx={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: 1.25,
-        // Collapse to 2 columns on narrow panels
-        "@media (max-width: 480px)": {
-          gridTemplateColumns: "repeat(2, 1fr)",
+        display: "flex",
+        gap: 1.5,
+        overflowX: "auto",
+        overflowY: "hidden",
+        pb: 0.5,
+        pr: 0.25,
+        scrollSnapType: "x proximity",
+        "& > *": {
+          scrollSnapAlign: "start",
         },
       }}
     >
