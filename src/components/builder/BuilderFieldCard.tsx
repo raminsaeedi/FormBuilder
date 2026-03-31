@@ -19,10 +19,6 @@ import { FormField } from "../../types/form";
 import { fieldTypeMeta } from "../shared/fieldMeta";
 import { DND_ITEM_TYPE } from "./dnd";
 
-// ─────────────────────────────────────────────
-// FieldPreview — schematic input mock per type
-// ─────────────────────────────────────────────
-
 function FieldPreview({ field }: { field: FormField }) {
   const inputShell = (content: ReactNode) => (
     <Box
@@ -160,10 +156,6 @@ function FieldPreview({ field }: { field: FormField }) {
   );
 }
 
-// ─────────────────────────────────────────────
-// Props
-// ─────────────────────────────────────────────
-
 export interface BuilderFieldCardProps {
   field: FormField;
   index: number;
@@ -175,10 +167,6 @@ export interface BuilderFieldCardProps {
   onDuplicate: () => void;
   onDelete: () => void;
 }
-
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
 
 function BuilderFieldCard({
   field,
@@ -202,6 +190,7 @@ function BuilderFieldCard({
     transform,
     transition,
     isDragging,
+    isOver,
   } = useSortable({
     id: field.id,
     data: {
@@ -210,7 +199,7 @@ function BuilderFieldCard({
     },
   });
 
-  const showControls = isSelected || isDragging;
+  const showControls = isSelected || isDragging || isOver;
 
   return (
     <Box
@@ -228,31 +217,40 @@ function BuilderFieldCard({
       }}
       sx={{
         position: "relative",
-        overflow: "hidden",
-        p: 1.75,
-        borderRadius: 3,
+        overflow: "visible",
+        p: 1.9,
+        borderRadius: 3.25,
         border: "1px solid",
         borderColor: isDragging
           ? alpha(color, 0.5)
-          : isSelected
-            ? alpha(color, 0.34)
-            : alpha("#0f172a", 0.08),
+          : isOver
+            ? alpha(color, 0.42)
+            : isSelected
+              ? alpha(color, 0.34)
+              : alpha("#0f172a", 0.08),
         bgcolor: isDragging
           ? alpha(color, 0.08)
-          : isSelected
-            ? alpha(color, 0.05)
-            : alpha("#ffffff", 0.92),
+          : isOver
+            ? alpha(color, 0.06)
+            : isSelected
+              ? alpha(color, 0.05)
+              : alpha("#ffffff", 0.96),
         backgroundImage: isDragging
           ? `linear-gradient(135deg, ${alpha(color, 0.12)} 0%, ${alpha(
               color,
               0.04,
             )} 100%)`
-          : isSelected
-            ? `linear-gradient(135deg, ${alpha(color, 0.08)} 0%, ${alpha(
+          : isOver
+            ? `linear-gradient(135deg, ${alpha(color, 0.1)} 0%, ${alpha(
                 color,
-                0.02,
+                0.03,
               )} 100%)`
-            : "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.96) 100%)",
+            : isSelected
+              ? `linear-gradient(135deg, ${alpha(color, 0.08)} 0%, ${alpha(
+                  color,
+                  0.02,
+                )} 100%)`
+              : "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.96) 100%)",
         cursor: isDragging ? "grabbing" : "pointer",
         outline: "none",
         opacity: isDragging ? 0.98 : 1,
@@ -262,18 +260,21 @@ function BuilderFieldCard({
           "transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease",
         boxShadow: isDragging
           ? `0 20px 44px ${alpha(color, 0.22)}`
-          : isSelected
-            ? `0 0 0 1px ${alpha(color, 0.12)}, 0 10px 28px ${alpha(color, 0.12)}`
-            : "0 6px 18px rgba(15, 23, 42, 0.06)",
+          : isOver
+            ? `0 0 0 1px ${alpha(color, 0.12)}, 0 14px 30px ${alpha(color, 0.14)}`
+            : isSelected
+              ? `0 0 0 1px ${alpha(color, 0.12)}, 0 10px 28px ${alpha(color, 0.12)}`
+              : "0 8px 22px rgba(15, 23, 42, 0.06)",
         backdropFilter: "blur(10px)",
-        zIndex: isDragging ? 3 : 1,
+        zIndex: isDragging ? 3 : isOver ? 2 : 1,
         "&::before": {
           content: '""',
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
+          borderRadius: "inherit",
           background:
-            isDragging || isSelected
+            isDragging || isSelected || isOver
               ? `linear-gradient(90deg, ${alpha(color, 0.18)} 0px, ${alpha(
                   color,
                   0.08,
@@ -283,29 +284,39 @@ function BuilderFieldCard({
         "&::after": {
           content: '""',
           position: "absolute",
-          inset: 1,
-          borderRadius: "inherit",
+          left: 18,
+          right: 18,
+          top: -10,
+          height: 6,
+          borderRadius: 999,
           pointerEvents: "none",
-          boxShadow: isDragging
-            ? `inset 0 0 0 1px ${alpha(color, 0.18)}`
-            : "none",
+          bgcolor: isOver && !isDragging ? alpha(color, 0.9) : "transparent",
+          boxShadow:
+            isOver && !isDragging ? `0 0 0 6px ${alpha(color, 0.12)}` : "none",
+          transition: "background-color 180ms ease, box-shadow 180ms ease",
         },
         "&:hover": {
           borderColor: isDragging
             ? alpha(color, 0.5)
-            : isSelected
-              ? alpha(color, 0.4)
-              : alpha(color, 0.22),
+            : isOver
+              ? alpha(color, 0.42)
+              : isSelected
+                ? alpha(color, 0.4)
+                : alpha(color, 0.22),
           bgcolor: isDragging
             ? alpha(color, 0.08)
-            : isSelected
+            : isOver
               ? alpha(color, 0.06)
-              : alpha(color, 0.03),
+              : isSelected
+                ? alpha(color, 0.06)
+                : alpha(color, 0.03),
           boxShadow: isDragging
             ? `0 20px 44px ${alpha(color, 0.22)}`
-            : isSelected
-              ? `0 0 0 1px ${alpha(color, 0.14)}, 0 12px 30px ${alpha(color, 0.14)}`
-              : `0 10px 24px ${alpha("#0f172a", 0.08)}`,
+            : isOver
+              ? `0 0 0 1px ${alpha(color, 0.12)}, 0 14px 30px ${alpha(color, 0.14)}`
+              : isSelected
+                ? `0 0 0 1px ${alpha(color, 0.14)}, 0 12px 30px ${alpha(color, 0.14)}`
+                : `0 10px 24px ${alpha("#0f172a", 0.08)}`,
           transform: isDragging
             ? CSS.Transform.toString(transform)
             : "translateY(-1px)",
@@ -320,7 +331,7 @@ function BuilderFieldCard({
         },
       }}
     >
-      <Stack spacing={1.4}>
+      <Stack spacing={1.55}>
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -340,18 +351,20 @@ function BuilderFieldCard({
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 38,
-                height: 38,
-                borderRadius: 2.5,
+                width: 40,
+                height: 40,
+                borderRadius: 2.75,
                 bgcolor: alpha(
                   color,
-                  isDragging ? 0.18 : isSelected ? 0.14 : 0.1,
+                  isDragging ? 0.18 : isOver ? 0.16 : isSelected ? 0.14 : 0.1,
                 ),
                 color,
                 boxShadow: isDragging
                   ? `0 8px 18px ${alpha(color, 0.18)}`
                   : "inset 0 0 0 1px rgba(255,255,255,0.35)",
                 mt: 0.1,
+                transition: "background-color 180ms ease, transform 180ms ease",
+                transform: isOver && !isDragging ? "translateY(-1px)" : "none",
               }}
             >
               {icon}
@@ -372,9 +385,11 @@ function BuilderFieldCard({
                     sx={{
                       color: isDragging
                         ? color
-                        : isSelected
+                        : isOver
                           ? color
-                          : "text.primary",
+                          : isSelected
+                            ? color
+                            : "text.primary",
                       lineHeight: 1.3,
                       wordBreak: "break-word",
                     }}
@@ -403,6 +418,15 @@ function BuilderFieldCard({
                       bgcolor: alpha(color, 0.04),
                     }}
                   />
+
+                  {isOver && !isDragging && (
+                    <Chip
+                      label="Drop position"
+                      size="small"
+                      color="primary"
+                      sx={{ height: 20, fontSize: "0.68rem", fontWeight: 800 }}
+                    />
+                  )}
                 </Stack>
 
                 <Typography
@@ -415,7 +439,7 @@ function BuilderFieldCard({
                 </Typography>
               </Stack>
 
-              <Stack direction="row" spacing={0.55} flexWrap="wrap" useFlexGap>
+              <Stack direction="row" spacing={0.6} flexWrap="wrap" useFlexGap>
                 <Chip
                   label={typeLabel}
                   size="small"
@@ -467,17 +491,21 @@ function BuilderFieldCard({
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: 34,
-                  height: 34,
-                  borderRadius: 2,
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2.25,
                   border: "1px solid",
                   borderColor: isDragging
                     ? alpha(color, 0.28)
-                    : alpha("#0f172a", 0.08),
+                    : isOver
+                      ? alpha(color, 0.22)
+                      : alpha("#0f172a", 0.08),
                   bgcolor: isDragging
                     ? alpha(color, 0.12)
-                    : alpha("#ffffff", 0.72),
-                  color: isDragging ? color : "text.secondary",
+                    : isOver
+                      ? alpha(color, 0.08)
+                      : alpha("#ffffff", 0.72),
+                  color: isDragging || isOver ? color : "text.secondary",
                   cursor: isDragging ? "grabbing" : "grab",
                   opacity: showControls ? 1 : 0,
                   transform: showControls ? "translateX(0)" : "translateX(4px)",
@@ -581,7 +609,16 @@ function BuilderFieldCard({
                   aria-label="Delete field"
                   sx={{
                     borderRadius: 2,
-                    "&:hover": { bgcolor: alpha("#ef4444", 0.08) },
+                    border: "1px solid",
+                    borderColor: alpha("#ef4444", 0.16),
+                    bgcolor: alpha("#ef4444", showControls ? 0.06 : 0.03),
+                    boxShadow: showControls
+                      ? `0 4px 12px ${alpha("#ef4444", 0.12)}`
+                      : "none",
+                    "&:hover": {
+                      bgcolor: alpha("#ef4444", 0.12),
+                      borderColor: alpha("#ef4444", 0.24),
+                    },
                   }}
                 >
                   <DeleteOutlineRoundedIcon fontSize="small" />
@@ -594,11 +631,12 @@ function BuilderFieldCard({
         <Box
           sx={{
             ml: { xs: 0, sm: 6.25 },
-            p: 1.15,
-            borderRadius: 2.5,
+            p: 1.25,
+            borderRadius: 2.75,
             border: "1px solid",
-            borderColor: alpha("#0f172a", 0.06),
-            bgcolor: alpha("#ffffff", 0.62),
+            borderColor: isOver ? alpha(color, 0.14) : alpha("#0f172a", 0.06),
+            bgcolor: isOver ? alpha(color, 0.04) : alpha("#ffffff", 0.62),
+            transition: "background-color 180ms ease, border-color 180ms ease",
           }}
         >
           {field.label && field.type !== "checkbox" && (
@@ -618,6 +656,47 @@ function BuilderFieldCard({
           )}
 
           <FieldPreview field={field} />
+
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={1}
+            sx={{ mt: 1.2 }}
+          >
+            <Typography
+              variant="caption"
+              color={isOver ? "primary.main" : "text.disabled"}
+            >
+              {isOver
+                ? "Release now to place the dragged field here."
+                : "Use the drag handle to reorder, or open the inspector to refine this field."}
+            </Typography>
+
+            <Tooltip title="Remove this field" arrow>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+                aria-label="Remove this field"
+                sx={{
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: alpha("#ef4444", 0.16),
+                  bgcolor: alpha("#ef4444", 0.05),
+                  "&:hover": {
+                    bgcolor: alpha("#ef4444", 0.1),
+                    borderColor: alpha("#ef4444", 0.24),
+                  },
+                }}
+              >
+                <DeleteOutlineRoundedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
         </Box>
       </Stack>
     </Box>

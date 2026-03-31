@@ -88,7 +88,7 @@ function PreviewPanel() {
         </Stack>
       }
     >
-      <Stack spacing={2.5}>
+      <Stack spacing={2.75}>
         <Stack
           direction={{ xs: "column", md: "row" }}
           justifyContent="space-between"
@@ -114,20 +114,20 @@ function PreviewPanel() {
 
         <Box
           sx={{
-            borderRadius: "24px",
+            borderRadius: "26px",
             border: "1px solid",
             borderColor: alpha("#0f172a", 0.08),
-            bgcolor: alpha("#f8fafc", 0.72),
-            p: { xs: 1.25, sm: 1.5, md: 1.75 },
+            bgcolor: alpha("#f8fafc", 0.78),
+            p: { xs: 1.35, sm: 1.65, md: 1.9 },
           }}
         >
           <Box
             sx={{
-              borderRadius: "18px",
+              borderRadius: "20px",
               border: "1px solid",
               borderColor: alpha("#cbd5e1", 0.9),
               bgcolor: alpha("#ffffff", 0.88),
-              boxShadow: "0 12px 30px rgba(15, 23, 42, 0.05)",
+              boxShadow: "0 14px 34px rgba(15, 23, 42, 0.06)",
               overflow: "hidden",
             }}
           >
@@ -189,25 +189,25 @@ function PreviewPanel() {
                 maxWidth: isMobile ? 390 : 1120,
                 minHeight: 340,
                 transition: "max-width 220ms ease",
-                px: { xs: 1, sm: 1.5, md: 2 },
-                py: { xs: 1.25, sm: 1.5, md: 1.75 },
+                px: { xs: 1.1, sm: 1.65, md: 2.1 },
+                py: { xs: 1.35, sm: 1.65, md: 1.9 },
               }}
             >
               <Box
                 sx={{
                   border: "1px solid",
                   borderColor: alpha("#cbd5e1", 0.8),
-                  borderRadius: isMobile ? "18px" : "20px",
+                  borderRadius: isMobile ? "20px" : "22px",
                   bgcolor: "background.paper",
-                  px: { xs: 1.25, sm: 2.25, md: 2.75 },
-                  py: { xs: 1.5, sm: 2.25, md: 2.5 },
-                  boxShadow: "0 8px 24px rgba(15, 23, 42, 0.04)",
+                  px: { xs: 1.4, sm: 2.4, md: 2.9 },
+                  py: { xs: 1.65, sm: 2.35, md: 2.7 },
+                  boxShadow: "0 10px 28px rgba(15, 23, 42, 0.05)",
                 }}
               >
                 {form.fields.length === 0 ? (
                   <EmptyPreview />
                 ) : (
-                  <Stack spacing={2.5}>
+                  <Stack spacing={2.75}>
                     <Box
                       sx={{
                         pb: 1.5,
@@ -244,8 +244,8 @@ function PreviewPanel() {
                           field={field}
                           readOnly={false}
                           value={previewFieldValues[field.id]}
-                          onChange={(value) =>
-                            setPreviewFieldValue(field.id, value)
+                          onChange={(nextValue) =>
+                            setPreviewFieldValue(field.id, nextValue)
                           }
                         />
                       ))}
@@ -253,7 +253,7 @@ function PreviewPanel() {
 
                     <Stack
                       direction={{ xs: "column", sm: "row" }}
-                      spacing={1.25}
+                      spacing={1.35}
                       sx={{ pt: 0.75 }}
                     >
                       <Button

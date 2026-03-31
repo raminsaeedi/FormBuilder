@@ -14,38 +14,17 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNode } from "react";
 import { FormField, PreviewFieldValue } from "../../types/form";
 
-// ─────────────────────────────────────────────
-// Props
-// ─────────────────────────────────────────────
-
 export interface FieldRendererProps {
-  /** The form field definition to render. */
   field: FormField;
-  /**
-   * When true, all inputs are rendered as read-only (preview mode).
-   * When false, inputs are interactive.
-   * @default true
-   */
   readOnly?: boolean;
-  /**
-   * Optional CSS grid column override.
-   * Defaults to `"1 / -1"` for full-width fields and `"auto"` for half-width.
-   */
   gridColumn?: string;
-  /** Controlled field value used by the preview form. */
   value?: PreviewFieldValue;
-  /** Controlled change handler used by the preview form. */
   onChange?: (value: PreviewFieldValue) => void;
 }
 
-// ─────────────────────────────────────────────
-// Internal helpers
-// ─────────────────────────────────────────────
-
-/** Renders a red asterisk for required fields. */
 function RequiredMark() {
   return (
     <Box component="span" sx={{ color: "error.main", ml: 0.25 }}>
@@ -54,11 +33,7 @@ function RequiredMark() {
   );
 }
 
-/**
- * Composes a field label with an optional required marker.
- * Returns a ReactNode suitable for MUI `label` props.
- */
-function buildLabel(label: string, required: boolean) {
+function buildLabel(label: string, required: boolean): ReactNode {
   if (!required) return label || "Untitled";
   return (
     <>
@@ -69,14 +44,12 @@ function buildLabel(label: string, required: boolean) {
 }
 
 function getStringValue(value: PreviewFieldValue | undefined) {
-  return typeof value === "string" || typeof value === "number"
-    ? String(value)
-    : "";
+  return typeof value === "string" ? value : "";
 }
 
-// ─────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────
+function getCheckboxValue(value: PreviewFieldValue | undefined) {
+  return typeof value === "boolean" ? value : false;
+}
 
 function FieldRenderer({
   field,
@@ -92,12 +65,6 @@ function FieldRenderer({
   const handleTextLikeChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    if (field.type === "number") {
-      const nextValue = event.target.value;
-      onChange?.(nextValue === "" ? "" : Number(nextValue));
-      return;
-    }
-
     onChange?.(event.target.value);
   };
 
@@ -116,7 +83,6 @@ function FieldRenderer({
     onChange?.(event.target.value);
   };
 
-  // ── Textarea ───────────────────────────────
   if (field.type === "textarea") {
     return (
       <TextField
@@ -134,7 +100,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Select ─────────────────────────────────
   if (field.type === "select") {
     return (
       <FormControl fullWidth sx={{ gridColumn: col }}>
@@ -148,7 +113,7 @@ function FieldRenderer({
           <MenuItem value="">
             <em>{field.placeholder || "Select an option"}</em>
           </MenuItem>
-          {field.options?.map((option) => (
+          {field.options.map((option) => (
             <MenuItem key={option.id} value={option.value}>
               {option.label}
             </MenuItem>
@@ -159,7 +124,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Radio group ────────────────────────────
   if (field.type === "radio") {
     return (
       <FormControl sx={{ gridColumn: col }}>
@@ -179,7 +143,7 @@ function FieldRenderer({
           value={getStringValue(value)}
           onChange={handleRadioChange}
         >
-          {field.options?.map((option) => (
+          {field.options.map((option) => (
             <FormControlLabel
               key={option.id}
               value={option.value}
@@ -196,7 +160,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Checkbox ───────────────────────────────
   if (field.type === "checkbox") {
     return (
       <FormControl sx={{ gridColumn: col }}>
@@ -205,7 +168,7 @@ function FieldRenderer({
           control={
             <Checkbox
               size="small"
-              checked={Boolean(value)}
+              checked={getCheckboxValue(value)}
               onChange={handleCheckboxChange}
             />
           }
@@ -225,7 +188,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Password ───────────────────────────────
   if (field.type === "password") {
     return (
       <TextField
@@ -242,7 +204,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Number ─────────────────────────────────
   if (field.type === "number") {
     return (
       <TextField
@@ -259,7 +220,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Date ───────────────────────────────────
   if (field.type === "date") {
     return (
       <TextField
@@ -276,7 +236,6 @@ function FieldRenderer({
     );
   }
 
-  // ── Text / Email / Phone (default) ─────────
   const inputType =
     field.type === "email" ? "email" : field.type === "phone" ? "tel" : "text";
 

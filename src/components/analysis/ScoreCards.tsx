@@ -136,22 +136,23 @@ function ScoreCard({
     <Tooltip title={tooltip} arrow placement="top">
       <Box
         sx={{
-          minWidth: 220,
-          flex: "0 0 220px",
-          borderRadius: "16px",
+          minWidth: 228,
+          flex: "1 1 228px",
+          borderRadius: "18px",
           border: "1px solid",
           borderColor: alpha("#0f172a", 0.08),
-          bgcolor: "background.paper",
-          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.05)",
-          px: 2,
-          py: 1.75,
+          bgcolor: alpha("#ffffff", 0.96),
+          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.05)",
+          px: 2.1,
+          py: 1.9,
           transition:
-            "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease",
+            "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease",
           cursor: "default",
           "&:hover": {
-            borderColor: alpha(color, 0.22),
-            boxShadow: `0 12px 28px ${alpha(color, 0.1)}`,
+            borderColor: alpha(color, 0.24),
+            boxShadow: `0 14px 30px ${alpha(color, 0.1)}`,
             transform: "translateY(-1px)",
+            bgcolor: alpha("#ffffff", 0.99),
           },
         }}
       >
@@ -276,16 +277,13 @@ function ScoreCards() {
   return (
     <Box
       sx={{
-        display: "flex",
-        gap: 1.5,
-        overflowX: "auto",
-        overflowY: "hidden",
-        pb: 0.5,
-        pr: 0.25,
-        scrollSnapType: "x proximity",
-        "& > *": {
-          scrollSnapAlign: "start",
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "repeat(1, minmax(0, 1fr))",
+          sm: "repeat(2, minmax(0, 1fr))",
+          xl: "repeat(4, minmax(0, 1fr))",
         },
+        gap: 1.5,
       }}
     >
       {cards.map((card) => (

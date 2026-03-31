@@ -1,131 +1,84 @@
 import { create } from "zustand";
 import { primaryTemplate, templates } from "../data/mockForm";
 import { mockAnalysisByTemplateId } from "../data/mockAnalysis";
-import { analyzeForm } from "../utils/analysis";
 import {
   AnalysisResult,
+  CheckboxFormField,
+  FieldOption,
   FieldType,
   FormDefinition,
   FormField,
   PreviewFieldState,
   PreviewFieldValue,
+  RadioFormField,
+  SelectFormField,
+  TextLikeFormField,
 } from "../types/form";
+import { analyzeForm } from "../utils/analysis";
 
-// ─────────────────────────────────────────────
-// State shape
-// ─────────────────────────────────────────────
+export type FieldPatch = Partial<
+  Pick<
+    FormField,
+    "label" | "placeholder" | "helpText" | "required" | "width"
+  > & {
+    options: FieldOption[];
+  }
+>;
 
 interface BuilderState {
-  // ── Core data ───────────────────────────────
-  /** The currently active form definition. */
   form: FormDefinition;
-
-  /** ID of the field currently selected in the canvas, or null. */
   selectedFieldId: string | null;
-
-  /** Store-backed values for the interactive preview/demo form. */
   previewFieldValues: PreviewFieldState;
-
-  // ── UI mode ─────────────────────────────────
-  /**
-   * When true, the preview panel is the primary focus.
-   * The builder canvas and inspector are visually de-emphasised.
-   */
   previewMode: boolean;
-
-  /**
-   * The viewport simulation mode used in the preview panel.
-   * "desktop" renders a two-column grid; "mobile" constrains to 390 px single-column.
-   */
   viewportMode: "desktop" | "mobile";
-
-  // ── Analysis ────────────────────────────────
-  /**
-   * The latest UX analysis result for the current form.
-   * Re-computed automatically after every mutation.
-   */
   analysisResult: AnalysisResult;
-
-  // ── Actions: form-level ─────────────────────
-  /** Replace the entire form with a new definition and re-run analysis. */
   setForm: (form: FormDefinition) => void;
-
-  /** Load a template by reference and select its first field. */
   loadTemplate: (template: FormDefinition) => void;
-
-  /** Reset to the primary demo template. */
   resetToPrimaryTemplate: () => void;
-
-  // ── Actions: field selection ────────────────
-  /** Set the active field in the canvas inspector. */
   selectField: (fieldId: string | null) => void;
-
-  // ── Actions: field mutations ────────────────
-  /** Append a new field of the given type to the end of the field list. */
   addField: (type: FieldType) => void;
-
-  /** Insert a new field of the given type at a specific index. */
   insertField: (type: FieldType, index?: number) => void;
-
-  /** Apply a partial patch to a specific field by ID. */
-  updateField: (fieldId: string, patch: Partial<FormField>) => void;
-
-  /** Remove a field by ID. Selects the next available field automatically. */
+  updateField: (fieldId: string, patch: FieldPatch) => void;
   deleteField: (fieldId: string) => void;
-
-  /** Insert a copy of a field directly after the original. */
   duplicateField: (fieldId: string) => void;
-
-  /** Swap a field one position up or down in the list. */
   moveField: (fieldId: string, direction: "up" | "down") => void;
-
-  /** Reorder a field from one index to another. */
   reorderFields: (activeFieldId: string, overFieldId: string) => void;
-
-  // ── Actions: preview values ─────────────────
-  /** Set a single preview field value by field ID. */
   setPreviewFieldValue: (fieldId: string, value: PreviewFieldValue) => void;
-
-  /** Reset all preview field values to defaults derived from the current form. */
   resetPreviewFieldValues: () => void;
-
-  // ── Actions: UI mode ────────────────────────
-  /** Toggle between builder mode and preview mode. */
   togglePreviewMode: () => void;
-
-  /** Explicitly set preview mode on or off. */
   setPreviewMode: (active: boolean) => void;
-
-  /** Set the viewport simulation mode for the preview panel. */
   setViewportMode: (mode: "desktop" | "mobile") => void;
 }
 
-// ─────────────────────────────────────────────
-// Internal helpers
-// ─────────────────────────────────────────────
+const cloneFieldOptions = (options: FieldOption[]): FieldOption[] =>
+  options.map((option) => ({ ...option }));
+
+const isOptionField = (
+  field: FormField,
+): field is SelectFormField | RadioFormField =>
+  field.type === "select" || field.type === "radio";
+
+const cloneField = (field: FormField): FormField => {
+  if (isOptionField(field)) {
+    return {
+      ...field,
+      options: cloneFieldOptions(field.options),
+    };
+  }
+
+  return { ...field };
+};
 
 const cloneTemplate = (template: FormDefinition): FormDefinition => ({
   ...template,
-  fields: template.fields.map((field) => ({
-    ...field,
-    options: field.options?.map((option) => ({ ...option })),
-  })),
+  fields: template.fields.map(cloneField),
 });
 
 const createId = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
-const getDefaultPreviewValue = (field: FormField): PreviewFieldValue => {
-  if (field.type === "checkbox") {
-    return false;
-  }
-
-  if (field.type === "number") {
-    return "";
-  }
-
-  return "";
-};
+const getDefaultPreviewValue = (field: FormField): PreviewFieldValue =>
+  field.type === "checkbox" ? false : "";
 
 const buildPreviewFieldValues = (form: FormDefinition): PreviewFieldState =>
   form.fields.reduce<PreviewFieldState>((acc, field) => {
@@ -145,32 +98,31 @@ const syncPreviewFieldValues = (
     return acc;
   }, {});
 
-const buildStateFromForm = (
-  form: FormDefinition,
-  overrides?: Partial<
-    Pick<BuilderState, "selectedFieldId" | "previewMode" | "previewFieldValues">
-  >,
-) => ({
-  form,
-  selectedFieldId: overrides?.selectedFieldId ?? form.fields[0]?.id ?? null,
-  previewMode: overrides?.previewMode ?? false,
-  previewFieldValues:
-    overrides?.previewFieldValues ?? buildPreviewFieldValues(form),
-  analysisResult: resolveAnalysis(form),
-});
-
-/**
- * Return the best available analysis for a form:
- * 1. Use the static mock result if the template id is known (instant, no computation).
- * 2. Fall back to the live `analyzeForm()` engine for user-modified forms.
- */
 const resolveAnalysis = (form: FormDefinition): AnalysisResult => {
   const mock = mockAnalysisByTemplateId[form.id];
   if (mock) return mock;
   return analyzeForm(form);
 };
 
-const fieldFactory = (type: FieldType): FormField => {
+const buildStateFromForm = (
+  form: FormDefinition,
+  overrides?: Partial<
+    Pick<
+      BuilderState,
+      "selectedFieldId" | "previewMode" | "previewFieldValues" | "viewportMode"
+    >
+  >,
+) => ({
+  form,
+  selectedFieldId: overrides?.selectedFieldId ?? form.fields[0]?.id ?? null,
+  previewMode: overrides?.previewMode ?? false,
+  viewportMode: overrides?.viewportMode ?? "desktop",
+  previewFieldValues:
+    overrides?.previewFieldValues ?? buildPreviewFieldValues(form),
+  analysisResult: resolveAnalysis(form),
+});
+
+const createFieldBase = (type: FieldType) => {
   const labelMap: Record<FieldType, string> = {
     text: "Text field",
     email: "Email address",
@@ -210,7 +162,7 @@ const fieldFactory = (type: FieldType): FormField => {
     checkbox: "Optional acknowledgement control.",
   };
 
-  const base: FormField = {
+  return {
     id: createId("field"),
     type,
     label: labelMap[type],
@@ -221,39 +173,125 @@ const fieldFactory = (type: FieldType): FormField => {
       type === "textarea" || type === "checkbox" || type === "radio"
         ? "full"
         : "half",
-  };
+  } as const;
+};
+
+const fieldFactory = (type: FieldType): FormField => {
+  const base = createFieldBase(type);
 
   if (type === "select") {
-    return {
+    const field: SelectFormField = {
       ...base,
+      type,
       options: [
         { id: createId("opt"), label: "Option one", value: "option-one" },
         { id: createId("opt"), label: "Option two", value: "option-two" },
       ],
     };
+
+    return field;
   }
 
   if (type === "radio") {
-    return {
+    const field: RadioFormField = {
       ...base,
+      type,
       options: [
         { id: createId("opt"), label: "Choice A", value: "choice-a" },
         { id: createId("opt"), label: "Choice B", value: "choice-b" },
       ],
     };
+
+    return field;
   }
 
-  return base;
+  if (type === "checkbox") {
+    const field: CheckboxFormField = {
+      ...base,
+      type,
+    };
+
+    return field;
+  }
+
+  const field: TextLikeFormField = {
+    ...base,
+    type,
+  };
+
+  return field;
 };
 
-// ─────────────────────────────────────────────
-// Store
-// ─────────────────────────────────────────────
+const duplicateFieldDefinition = (field: FormField): FormField => {
+  const duplicatedId = createId("field");
+
+  if (isOptionField(field)) {
+    return {
+      ...field,
+      id: duplicatedId,
+      label: `${field.label} copy`,
+      options: field.options.map((option) => ({
+        ...option,
+        id: createId("opt"),
+      })),
+    };
+  }
+
+  return {
+    ...field,
+    id: duplicatedId,
+    label: `${field.label} copy`,
+  };
+};
+
+const applyFieldPatch = (field: FormField, patch: FieldPatch): FormField => {
+  if (isOptionField(field)) {
+    const nextField: SelectFormField | RadioFormField = {
+      ...field,
+      ...patch,
+      options: patch.options
+        ? cloneFieldOptions(patch.options)
+        : cloneFieldOptions(field.options),
+    };
+
+    return nextField;
+  }
+
+  return {
+    ...field,
+    ...patch,
+  } as TextLikeFormField | CheckboxFormField;
+};
+
+const moveArrayItem = <T>(items: T[], fromIndex: number, toIndex: number) => {
+  if (fromIndex === toIndex) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [item] = nextItems.splice(fromIndex, 1);
+  nextItems.splice(toIndex, 0, item);
+  return nextItems;
+};
+
+const buildMutationResult = (
+  state: BuilderState,
+  form: FormDefinition,
+  overrides?: Partial<
+    Pick<BuilderState, "selectedFieldId" | "previewFieldValues">
+  >,
+) => ({
+  form,
+  selectedFieldId: overrides?.selectedFieldId ?? state.selectedFieldId,
+  previewFieldValues:
+    overrides?.previewFieldValues ??
+    syncPreviewFieldValues(form, state.previewFieldValues),
+  analysisResult: analyzeForm(form),
+});
 
 const initialForm = cloneTemplate(primaryTemplate);
 
 export const useBuilderStore = create<BuilderState>((set) => ({
-  // ── Initial state ───────────────────────────
   form: initialForm,
   selectedFieldId: initialForm.fields[0]?.id ?? null,
   previewFieldValues: buildPreviewFieldValues(initialForm),
@@ -261,9 +299,12 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   viewportMode: "desktop",
   analysisResult: resolveAnalysis(initialForm),
 
-  // ── Form-level actions ──────────────────────
-
-  setForm: (form) => set(buildStateFromForm(form, { previewMode: false })),
+  setForm: (form) =>
+    set(
+      buildStateFromForm(form, {
+        previewMode: false,
+      }),
+    ),
 
   loadTemplate: (template) => {
     const form = cloneTemplate(template);
@@ -275,11 +316,7 @@ export const useBuilderStore = create<BuilderState>((set) => ({
     set(buildStateFromForm(form));
   },
 
-  // ── Field selection ─────────────────────────
-
   selectField: (fieldId) => set({ selectedFieldId: fieldId }),
-
-  // ── Field mutations ─────────────────────────
 
   addField: (type) =>
     set((state) => {
@@ -288,15 +325,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
         ...state.form,
         fields: [...state.form.fields, newField],
       };
-      return {
-        form,
+
+      return buildMutationResult(state, form, {
         selectedFieldId: newField.id,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
-      };
+      });
     }),
 
   insertField: (type, index) =>
@@ -314,15 +346,9 @@ export const useBuilderStore = create<BuilderState>((set) => ({
         fields,
       };
 
-      return {
-        form,
+      return buildMutationResult(state, form, {
         selectedFieldId: newField.id,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
-      };
+      });
     }),
 
   updateField: (fieldId, patch) =>
@@ -330,17 +356,11 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       const form: FormDefinition = {
         ...state.form,
         fields: state.form.fields.map((field) =>
-          field.id === fieldId ? { ...field, ...patch } : field,
+          field.id === fieldId ? applyFieldPatch(field, patch) : field,
         ),
       };
-      return {
-        form,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
-      };
+
+      return buildMutationResult(state, form);
     }),
 
   deleteField: (fieldId) =>
@@ -365,15 +385,9 @@ export const useBuilderStore = create<BuilderState>((set) => ({
             nextFields[0]?.id ??
             null);
 
-      return {
-        form,
+      return buildMutationResult(state, form, {
         selectedFieldId: nextSelectedFieldId,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
-      };
+      });
     }),
 
   duplicateField: (fieldId) =>
@@ -383,30 +397,14 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       );
       if (index < 0) return state;
 
-      const source = state.form.fields[index];
-      const duplicate: FormField = {
-        ...source,
-        id: createId("field"),
-        label: `${source.label} copy`,
-        options: source.options?.map((option) => ({
-          ...option,
-          id: createId("opt"),
-        })),
-      };
-
+      const duplicate = duplicateFieldDefinition(state.form.fields[index]);
       const fields = [...state.form.fields];
       fields.splice(index + 1, 0, duplicate);
 
       const form: FormDefinition = { ...state.form, fields };
-      return {
-        form,
+      return buildMutationResult(state, form, {
         selectedFieldId: duplicate.id,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
-      };
+      });
     }),
 
   moveField: (fieldId, direction) =>
@@ -421,19 +419,12 @@ export const useBuilderStore = create<BuilderState>((set) => ({
         return state;
       }
 
-      const fields = [...state.form.fields];
-      const [item] = fields.splice(index, 1);
-      fields.splice(targetIndex, 0, item);
-
-      const form: FormDefinition = { ...state.form, fields };
-      return {
-        form,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
+      const form: FormDefinition = {
+        ...state.form,
+        fields: moveArrayItem(state.form.fields, index, targetIndex),
       };
+
+      return buildMutationResult(state, form);
     }),
 
   reorderFields: (activeFieldId, overFieldId) =>
@@ -453,22 +444,13 @@ export const useBuilderStore = create<BuilderState>((set) => ({
         return state;
       }
 
-      const fields = [...state.form.fields];
-      const [movedField] = fields.splice(activeIndex, 1);
-      fields.splice(overIndex, 0, movedField);
-
-      const form: FormDefinition = { ...state.form, fields };
-      return {
-        form,
-        previewFieldValues: syncPreviewFieldValues(
-          form,
-          state.previewFieldValues,
-        ),
-        analysisResult: analyzeForm(form),
+      const form: FormDefinition = {
+        ...state.form,
+        fields: moveArrayItem(state.form.fields, activeIndex, overIndex),
       };
-    }),
 
-  // ── Preview value actions ───────────────────
+      return buildMutationResult(state, form);
+    }),
 
   setPreviewFieldValue: (fieldId, value) =>
     set((state) => ({
@@ -483,12 +465,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       previewFieldValues: buildPreviewFieldValues(state.form),
     })),
 
-  // ── UI mode actions ─────────────────────────
-
   togglePreviewMode: () =>
     set((state) => ({ previewMode: !state.previewMode })),
 
   setPreviewMode: (active) => set({ previewMode: active }),
 
-  setViewportMode: (mode: "desktop" | "mobile") => set({ viewportMode: mode }),
+  setViewportMode: (mode) => set({ viewportMode: mode }),
 }));

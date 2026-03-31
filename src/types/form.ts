@@ -38,21 +38,48 @@ export interface FieldOption {
   value: string;
 }
 
-/** A single form field with all editable properties. */
-export interface FormField {
+interface BaseFormField {
   id: string;
-  type: FieldType;
   label: string;
   placeholder: string;
   helpText: string;
   required: boolean;
   width: FieldWidth;
-  /** Only present for `select` and `radio` field types. */
-  options?: FieldOption[];
 }
 
-export type PreviewScalarFieldType = Exclude<FieldType, "checkbox">;
-export type PreviewFieldValue = string | number | boolean;
+export interface TextLikeFormField extends BaseFormField {
+  type:
+    | "text"
+    | "email"
+    | "phone"
+    | "password"
+    | "number"
+    | "date"
+    | "textarea";
+}
+
+export interface SelectFormField extends BaseFormField {
+  type: "select";
+  options: FieldOption[];
+}
+
+export interface RadioFormField extends BaseFormField {
+  type: "radio";
+  options: FieldOption[];
+}
+
+export interface CheckboxFormField extends BaseFormField {
+  type: "checkbox";
+}
+
+/** A single form field with all editable properties. */
+export type FormField =
+  | TextLikeFormField
+  | SelectFormField
+  | RadioFormField
+  | CheckboxFormField;
+
+export type PreviewFieldValue = string | boolean;
 export type PreviewFieldState = Record<string, PreviewFieldValue>;
 
 // ─────────────────────────────────────────────

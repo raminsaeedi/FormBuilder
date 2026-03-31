@@ -91,12 +91,13 @@ function ScoreOverview({ score }: { score: number }) {
   return (
     <Box
       sx={{
-        borderRadius: "18px",
+        borderRadius: "20px",
         border: "1px solid",
         borderColor: alpha("#0f172a", 0.08),
-        bgcolor: alpha("#f8fafc", 0.9),
-        px: { xs: 2, sm: 2.25 },
-        py: { xs: 1.75, sm: 2 },
+        bgcolor: alpha("#f8fafc", 0.92),
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+        px: { xs: 2, sm: 2.4 },
+        py: { xs: 1.9, sm: 2.15 },
       }}
     >
       <Stack spacing={1.5}>
@@ -224,11 +225,11 @@ function IssueCard({ issue, fieldLabel }: IssueCardProps) {
   return (
     <Box
       sx={{
-        borderRadius: "16px",
+        borderRadius: "18px",
         border: "1px solid",
         borderColor: cfg.borderColor,
-        bgcolor: "background.paper",
-        boxShadow: "0 4px 18px rgba(15, 23, 42, 0.04)",
+        bgcolor: alpha("#ffffff", 0.98),
+        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.05)",
         overflow: "hidden",
       }}
     >
@@ -239,7 +240,7 @@ function IssueCard({ issue, fieldLabel }: IssueCardProps) {
         }}
       />
 
-      <Box sx={{ px: 2, py: 1.75 }}>
+      <Box sx={{ px: 2.1, py: 1.9 }}>
         <Stack spacing={1.25}>
           <Stack
             direction={{ xs: "column", sm: "row" }}
@@ -320,12 +321,12 @@ function IssueCard({ issue, fieldLabel }: IssueCardProps) {
 
           <Box
             sx={{
-              borderRadius: "12px",
+              borderRadius: "14px",
               border: "1px solid",
               borderColor: alpha("#0f172a", 0.08),
-              bgcolor: alpha("#f8fafc", 0.8),
-              px: 1.25,
-              py: 1,
+              bgcolor: alpha("#f8fafc", 0.86),
+              px: 1.35,
+              py: 1.05,
             }}
           >
             <Stack direction="row" spacing={0.9} alignItems="flex-start">
@@ -418,7 +419,7 @@ function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
   const cfg = severityConfig[severity];
 
   return (
-    <Stack spacing={1.1}>
+    <Stack spacing={1.2}>
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -467,7 +468,7 @@ function IssueGroup({ severity, issues, fieldLabelById }: IssueGroupProps) {
         />
       </Stack>
 
-      <Stack spacing={1}>
+      <Stack spacing={1.1}>
         {issues.map((issue) => (
           <IssueCard
             key={issue.id}

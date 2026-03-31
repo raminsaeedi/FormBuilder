@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import { alpha, Box, Chip, Stack, Tooltip, Typography } from "@mui/material";
 import { fieldCatalog } from "../../data/fieldCatalog";
@@ -29,7 +30,7 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
 
   return (
     <Tooltip
-      title={`Add a ${title} field to the canvas`}
+      title={`Drag into the canvas or click to add a ${title} field`}
       placement="right"
       arrow
     >
@@ -45,30 +46,45 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
         {...listeners}
         {...attributes}
         sx={{
+          position: "relative",
           display: "flex",
           alignItems: "flex-start",
-          gap: 1.25,
-          p: 1.25,
-          borderRadius: "10px",
+          gap: 1.35,
+          p: 1.4,
+          borderRadius: "16px",
           border: "1px solid",
-          borderColor: "divider",
-          bgcolor: "background.paper",
+          borderColor: isDragging ? alpha(color, 0.42) : alpha("#0f172a", 0.08),
+          bgcolor: isDragging ? alpha(color, 0.08) : alpha("#ffffff", 0.96),
           cursor: isDragging ? "grabbing" : "grab",
-          transition: "all 160ms ease",
+          transition:
+            "transform 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease",
           outline: "none",
-          opacity: isDragging ? 0.55 : 1,
+          opacity: isDragging ? 0.48 : 1,
           transform: CSS.Translate.toString(transform),
+          boxShadow: isDragging
+            ? `0 14px 30px ${alpha(color, 0.16)}`
+            : "0 6px 18px rgba(15, 23, 42, 0.05)",
+          overflow: "hidden",
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background: `linear-gradient(90deg, ${alpha(color, 0.12)} 0px, transparent 64px)`,
+            opacity: isDragging ? 1 : 0,
+            transition: "opacity 160ms ease",
+          },
           "&:hover": {
-            borderColor: alpha(color, 0.5),
-            bgcolor: alpha(color, 0.05),
-            boxShadow: `0 2px 12px ${alpha(color, 0.14)}`,
+            borderColor: alpha(color, 0.28),
+            bgcolor: alpha(color, 0.04),
+            boxShadow: `0 12px 24px ${alpha(color, 0.1)}`,
             transform: isDragging
               ? CSS.Translate.toString(transform)
               : "translateY(-1px)",
           },
           "&:focus-visible": {
             borderColor: color,
-            boxShadow: `0 0 0 3px ${alpha(color, 0.22)}`,
+            boxShadow: `0 0 0 3px ${alpha(color, 0.18)}, 0 10px 24px ${alpha(color, 0.1)}`,
           },
           "&:active": {
             transform: CSS.Translate.toString(transform),
@@ -82,29 +98,71 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 32,
-            height: 32,
-            borderRadius: "8px",
-            bgcolor: alpha(color, 0.1),
+            width: 34,
+            height: 34,
+            borderRadius: "10px",
+            bgcolor: alpha(color, isDragging ? 0.18 : 0.1),
             color,
+            transition: "background-color 160ms ease, transform 160ms ease",
+            transform: isDragging ? "scale(1.04)" : "scale(1)",
           }}
         >
           {icon}
         </Box>
 
-        <Stack spacing={0.2} sx={{ minWidth: 0 }}>
-          <Typography
-            variant="subtitle2"
-            sx={{ lineHeight: 1.3, color: "text.primary" }}
+        <Stack
+          spacing={0.35}
+          sx={{ minWidth: 0, flex: 1, position: "relative", zIndex: 1 }}
+        >
+          <Stack
+            direction="row"
+            spacing={0.75}
+            alignItems="center"
+            justifyContent="space-between"
           >
-            {title}
-          </Typography>
+            <Typography
+              variant="subtitle2"
+              sx={{ lineHeight: 1.3, color: "text.primary", fontWeight: 700 }}
+            >
+              {title}
+            </Typography>
+
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.35,
+                color: isDragging ? color : "text.disabled",
+                transition: "color 160ms ease, transform 160ms ease",
+                transform: isDragging ? "translateX(0)" : "translateX(1px)",
+              }}
+            >
+              <DragIndicatorRoundedIcon sx={{ fontSize: 16 }} />
+              <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                Drag
+              </Typography>
+            </Box>
+          </Stack>
+
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ lineHeight: 1.4 }}
+            sx={{ lineHeight: 1.45 }}
           >
             {description}
+          </Typography>
+
+          <Typography
+            variant="caption"
+            sx={{
+              color: isDragging ? color : "text.disabled",
+              fontWeight: 600,
+              transition: "color 160ms ease",
+            }}
+          >
+            {isDragging
+              ? "Move to the canvas and release to add"
+              : "Click to add immediately or drag into the canvas for placement"}
           </Typography>
         </Stack>
       </Box>
@@ -121,7 +179,7 @@ function FieldPalette() {
     <PanelSection
       eyebrow="Palette"
       title="Field types"
-      description="Click any type to add it to the canvas."
+      description="Choose a field type, then add it with a click or place it more deliberately with drag and drop."
       actions={
         <Chip
           icon={<LayersRoundedIcon />}
@@ -131,44 +189,57 @@ function FieldPalette() {
         />
       }
     >
-      <Stack spacing={2.5}>
-        {GROUPS.map((group) => {
-          const items = fieldCatalog.filter((item) => item.category === group);
-          return (
-            <Stack key={group} spacing={0.75}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                sx={{ mb: 0.25 }}
-              >
-                <Typography
-                  variant="overline"
-                  color="text.disabled"
-                  sx={{ letterSpacing: "0.1em", lineHeight: 1 }}
-                >
-                  {group}
-                </Typography>
-                <Box sx={{ flex: 1, height: "1px", bgcolor: "divider" }} />
-                <Typography variant="caption" color="text.disabled">
-                  {items.length}
-                </Typography>
-              </Stack>
+      <Stack spacing={1.75}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ lineHeight: 1.6 }}
+        >
+          Tip: click for a quick add, or drag a field into the canvas when you
+          want a more guided placement flow.
+        </Typography>
 
-              <Stack spacing={0.6}>
-                {items.map((item) => (
-                  <PaletteCard
-                    key={item.type}
-                    type={item.type}
-                    title={item.title}
-                    description={item.description}
-                    onAdd={addField}
-                  />
-                ))}
+        <Stack spacing={2.75}>
+          {GROUPS.map((group) => {
+            const items = fieldCatalog.filter(
+              (item) => item.category === group,
+            );
+            return (
+              <Stack key={group} spacing={0.9}>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ mb: 0.25 }}
+                >
+                  <Typography
+                    variant="overline"
+                    color="text.disabled"
+                    sx={{ letterSpacing: "0.1em", lineHeight: 1 }}
+                  >
+                    {group}
+                  </Typography>
+                  <Box sx={{ flex: 1, height: "1px", bgcolor: "divider" }} />
+                  <Typography variant="caption" color="text.disabled">
+                    {items.length}
+                  </Typography>
+                </Stack>
+
+                <Stack spacing={0.75}>
+                  {items.map((item) => (
+                    <PaletteCard
+                      key={item.type}
+                      type={item.type}
+                      title={item.title}
+                      description={item.description}
+                      onAdd={addField}
+                    />
+                  ))}
+                </Stack>
               </Stack>
-            </Stack>
-          );
-        })}
+            );
+          })}
+        </Stack>
       </Stack>
     </PanelSection>
   );
