@@ -64,6 +64,9 @@ interface BuilderState {
   /** Append a new field of the given type to the end of the field list. */
   addField: (type: FieldType) => void;
 
+  /** Insert a new field of the given type at a specific index. */
+  insertField: (type: FieldType, index?: number) => void;
+
   /** Apply a partial patch to a specific field by ID. */
   updateField: (fieldId: string, patch: Partial<FormField>) => void;
 
@@ -75,6 +78,9 @@ interface BuilderState {
 
   /** Swap a field one position up or down in the list. */
   moveField: (fieldId: string, direction: "up" | "down") => void;
+
+  /** Reorder a field from one index to another. */
+  reorderFields: (activeFieldId: string, overFieldId: string) => void;
 
   // ── Actions: preview values ─────────────────
   /** Set a single preview field value by field ID. */
@@ -293,6 +299,32 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       };
     }),
 
+  insertField: (type, index) =>
+    set((state) => {
+      const newField = fieldFactory(type);
+      const nextIndex =
+        typeof index === "number"
+          ? Math.max(0, Math.min(index, state.form.fields.length))
+          : state.form.fields.length;
+      const fields = [...state.form.fields];
+      fields.splice(nextIndex, 0, newField);
+
+      const form: FormDefinition = {
+        ...state.form,
+        fields,
+      };
+
+      return {
+        form,
+        selectedFieldId: newField.id,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
+        analysisResult: analyzeForm(form),
+      };
+    }),
+
   updateField: (fieldId, patch) =>
     set((state) => {
       const form: FormDefinition = {
@@ -313,13 +345,29 @@ export const useBuilderStore = create<BuilderState>((set) => ({
 
   deleteField: (fieldId) =>
     set((state) => {
+      const deletedIndex = state.form.fields.findIndex(
+        (field) => field.id === fieldId,
+      );
+      if (deletedIndex < 0) {
+        return state;
+      }
+
       const nextFields = state.form.fields.filter(
         (field) => field.id !== fieldId,
       );
       const form: FormDefinition = { ...state.form, fields: nextFields };
+
+      const nextSelectedFieldId =
+        state.selectedFieldId !== fieldId
+          ? state.selectedFieldId
+          : (nextFields[deletedIndex]?.id ??
+            nextFields[deletedIndex - 1]?.id ??
+            nextFields[0]?.id ??
+            null);
+
       return {
         form,
-        selectedFieldId: nextFields[0]?.id ?? null,
+        selectedFieldId: nextSelectedFieldId,
         previewFieldValues: syncPreviewFieldValues(
           form,
           state.previewFieldValues,
@@ -376,6 +424,38 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       const fields = [...state.form.fields];
       const [item] = fields.splice(index, 1);
       fields.splice(targetIndex, 0, item);
+
+      const form: FormDefinition = { ...state.form, fields };
+      return {
+        form,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
+        analysisResult: analyzeForm(form),
+      };
+    }),
+
+  reorderFields: (activeFieldId, overFieldId) =>
+    set((state) => {
+      if (activeFieldId === overFieldId) {
+        return state;
+      }
+
+      const activeIndex = state.form.fields.findIndex(
+        (field) => field.id === activeFieldId,
+      );
+      const overIndex = state.form.fields.findIndex(
+        (field) => field.id === overFieldId,
+      );
+
+      if (activeIndex < 0 || overIndex < 0) {
+        return state;
+      }
+
+      const fields = [...state.form.fields];
+      const [movedField] = fields.splice(activeIndex, 1);
+      fields.splice(overIndex, 0, movedField);
 
       const form: FormDefinition = { ...state.form, fields };
       return {

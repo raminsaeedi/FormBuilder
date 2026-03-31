@@ -1,7 +1,10 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
+import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import {
   alpha,
   Box,
@@ -12,8 +15,9 @@ import {
   Typography,
 } from "@mui/material";
 import { ReactNode } from "react";
-import { fieldTypeMeta } from "../shared/fieldMeta";
 import { FormField } from "../../types/form";
+import { fieldTypeMeta } from "../shared/fieldMeta";
+import { DND_ITEM_TYPE } from "./dnd";
 
 // ─────────────────────────────────────────────
 // FieldPreview — schematic input mock per type
@@ -24,14 +28,15 @@ function FieldPreview({ field }: { field: FormField }) {
     <Box
       sx={{
         border: "1px solid",
-        borderColor: "divider",
-        borderRadius: "8px",
+        borderColor: alpha("#0f172a", 0.08),
+        borderRadius: 2,
         px: 1.25,
-        py: 0.75,
-        bgcolor: "background.paper",
-        minHeight: 34,
+        py: 0.85,
+        bgcolor: alpha("#ffffff", 0.82),
+        minHeight: 36,
         display: "flex",
         alignItems: "center",
+        backdropFilter: "blur(6px)",
       }}
     >
       {content}
@@ -43,12 +48,13 @@ function FieldPreview({ field }: { field: FormField }) {
       <Box
         sx={{
           border: "1px solid",
-          borderColor: "divider",
-          borderRadius: "8px",
-          minHeight: 64,
-          bgcolor: "background.paper",
+          borderColor: alpha("#0f172a", 0.08),
+          borderRadius: 2,
+          minHeight: 72,
+          bgcolor: alpha("#ffffff", 0.82),
           px: 1.25,
-          py: 0.75,
+          py: 0.85,
+          backdropFilter: "blur(6px)",
         }}
       >
         <Typography variant="caption" color="text.disabled">
@@ -60,12 +66,12 @@ function FieldPreview({ field }: { field: FormField }) {
 
   if (field.type === "radio" && field.options) {
     return (
-      <Stack spacing={0.6}>
+      <Stack spacing={0.7}>
         {field.options.map((option) => (
           <Stack
             key={option.id}
             direction="row"
-            spacing={0.75}
+            spacing={0.8}
             alignItems="center"
           >
             <Box
@@ -76,6 +82,7 @@ function FieldPreview({ field }: { field: FormField }) {
                 borderColor: "divider",
                 borderRadius: "50%",
                 flexShrink: 0,
+                bgcolor: "background.paper",
               }}
             />
             <Typography variant="caption" color="text.secondary">
@@ -89,15 +96,16 @@ function FieldPreview({ field }: { field: FormField }) {
 
   if (field.type === "checkbox") {
     return (
-      <Stack direction="row" spacing={0.75} alignItems="center">
+      <Stack direction="row" spacing={0.8} alignItems="center">
         <Box
           sx={{
             width: 14,
             height: 14,
             border: "1.5px solid",
             borderColor: "divider",
-            borderRadius: "3px",
+            borderRadius: "4px",
             flexShrink: 0,
+            bgcolor: "background.paper",
           }}
         />
         <Typography variant="caption" color="text.secondary">
@@ -112,6 +120,7 @@ function FieldPreview({ field }: { field: FormField }) {
       <Stack
         direction="row"
         justifyContent="space-between"
+        alignItems="center"
         sx={{ width: "100%" }}
       >
         <Typography variant="caption" color="text.disabled">
@@ -144,7 +153,6 @@ function FieldPreview({ field }: { field: FormField }) {
     );
   }
 
-  // text, email, phone, number
   return inputShell(
     <Typography variant="caption" color="text.disabled">
       {field.placeholder || "Enter a value"}
@@ -187,8 +195,26 @@ function BuilderFieldCard({
   const isFirst = index === 0;
   const isLast = index === total - 1;
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: field.id,
+    data: {
+      type: DND_ITEM_TYPE.canvasField,
+      fieldId: field.id,
+    },
+  });
+
+  const showControls = isSelected || isDragging;
+
   return (
     <Box
+      ref={setNodeRef}
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
@@ -202,62 +228,111 @@ function BuilderFieldCard({
       }}
       sx={{
         position: "relative",
+        overflow: "hidden",
         p: 1.75,
-        pl: isSelected ? 2.25 : 1.75,
-        borderRadius: "12px",
-        border: "1.5px solid",
-        borderColor: isSelected ? alpha(color, 0.45) : "divider",
-        bgcolor: isSelected ? alpha(color, 0.04) : "background.paper",
-        cursor: "pointer",
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: isDragging
+          ? alpha(color, 0.5)
+          : isSelected
+            ? alpha(color, 0.34)
+            : alpha("#0f172a", 0.08),
+        bgcolor: isDragging
+          ? alpha(color, 0.08)
+          : isSelected
+            ? alpha(color, 0.05)
+            : alpha("#ffffff", 0.92),
+        backgroundImage: isDragging
+          ? `linear-gradient(135deg, ${alpha(color, 0.12)} 0%, ${alpha(
+              color,
+              0.04,
+            )} 100%)`
+          : isSelected
+            ? `linear-gradient(135deg, ${alpha(color, 0.08)} 0%, ${alpha(
+                color,
+                0.02,
+              )} 100%)`
+            : "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.96) 100%)",
+        cursor: isDragging ? "grabbing" : "pointer",
         outline: "none",
+        opacity: isDragging ? 0.98 : 1,
+        transform: CSS.Transform.toString(transform),
         transition:
-          "border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, padding-left 160ms ease",
-        boxShadow: isSelected
-          ? `0 0 0 3px ${alpha(color, 0.12)}, 0 2px 12px ${alpha(color, 0.1)}`
-          : "0 1px 4px rgba(15,23,42,0.04)",
-        // Left accent bar (selected state)
+          transition ||
+          "transform 180ms ease, border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease",
+        boxShadow: isDragging
+          ? `0 20px 44px ${alpha(color, 0.22)}`
+          : isSelected
+            ? `0 0 0 1px ${alpha(color, 0.12)}, 0 10px 28px ${alpha(color, 0.12)}`
+            : "0 6px 18px rgba(15, 23, 42, 0.06)",
+        backdropFilter: "blur(10px)",
+        zIndex: isDragging ? 3 : 1,
         "&::before": {
           content: '""',
           position: "absolute",
-          left: 0,
-          top: "20%",
-          bottom: "20%",
-          width: 3,
-          borderRadius: "0 3px 3px 0",
-          bgcolor: color,
-          opacity: isSelected ? 1 : 0,
-          transition: "opacity 160ms ease",
+          inset: 0,
+          pointerEvents: "none",
+          background:
+            isDragging || isSelected
+              ? `linear-gradient(90deg, ${alpha(color, 0.18)} 0px, ${alpha(
+                  color,
+                  0.08,
+                )} 4px, transparent 4px)`
+              : "transparent",
+        },
+        "&::after": {
+          content: '""',
+          position: "absolute",
+          inset: 1,
+          borderRadius: "inherit",
+          pointerEvents: "none",
+          boxShadow: isDragging
+            ? `inset 0 0 0 1px ${alpha(color, 0.18)}`
+            : "none",
         },
         "&:hover": {
-          borderColor: isSelected ? alpha(color, 0.5) : alpha(color, 0.3),
-          bgcolor: isSelected ? alpha(color, 0.05) : alpha(color, 0.025),
-          boxShadow: isSelected
-            ? `0 0 0 3px ${alpha(color, 0.14)}, 0 4px 16px ${alpha(color, 0.12)}`
-            : `0 2px 12px rgba(15,23,42,0.07)`,
-          // Reveal action buttons on hover
-          "& .field-actions": { opacity: 1 },
+          borderColor: isDragging
+            ? alpha(color, 0.5)
+            : isSelected
+              ? alpha(color, 0.4)
+              : alpha(color, 0.22),
+          bgcolor: isDragging
+            ? alpha(color, 0.08)
+            : isSelected
+              ? alpha(color, 0.06)
+              : alpha(color, 0.03),
+          boxShadow: isDragging
+            ? `0 20px 44px ${alpha(color, 0.22)}`
+            : isSelected
+              ? `0 0 0 1px ${alpha(color, 0.14)}, 0 12px 30px ${alpha(color, 0.14)}`
+              : `0 10px 24px ${alpha("#0f172a", 0.08)}`,
+          transform: isDragging
+            ? CSS.Transform.toString(transform)
+            : "translateY(-1px)",
+          "& .field-actions": { opacity: 1, transform: "translateX(0)" },
+          "& .drag-handle": { opacity: 1, transform: "translateX(0)" },
         },
         "&:focus-visible": {
-          boxShadow: `0 0 0 3px ${alpha(color, 0.3)}`,
+          boxShadow: `0 0 0 3px ${alpha(color, 0.22)}, 0 10px 24px ${alpha(
+            color,
+            0.12,
+          )}`,
         },
       }}
     >
-      <Stack spacing={1.25}>
-        {/* ── Header: icon + meta + actions ── */}
+      <Stack spacing={1.4}>
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="flex-start"
-          spacing={1}
+          spacing={1.25}
         >
-          {/* Left: type icon + label + chips */}
           <Stack
             direction="row"
             spacing={1.25}
             alignItems="flex-start"
-            sx={{ minWidth: 0 }}
+            sx={{ minWidth: 0, flex: 1 }}
           >
-            {/* Type icon badge */}
             <Box
               aria-hidden
               sx={{
@@ -265,155 +340,273 @@ function BuilderFieldCard({
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: 32,
-                height: 32,
-                borderRadius: "8px",
-                bgcolor: alpha(color, 0.1),
+                width: 38,
+                height: 38,
+                borderRadius: 2.5,
+                bgcolor: alpha(
+                  color,
+                  isDragging ? 0.18 : isSelected ? 0.14 : 0.1,
+                ),
                 color,
-                mt: 0.15,
+                boxShadow: isDragging
+                  ? `0 8px 18px ${alpha(color, 0.18)}`
+                  : "inset 0 0 0 1px rgba(255,255,255,0.35)",
+                mt: 0.1,
               }}
             >
               {icon}
             </Box>
 
-            {/* Field label + metadata chips */}
-            <Box sx={{ minWidth: 0 }}>
-              <Typography
-                variant="subtitle2"
-                fontWeight={700}
-                sx={{
-                  color: isSelected ? color : "text.primary",
-                  mb: 0.5,
-                  lineHeight: 1.3,
-                  wordBreak: "break-word",
-                }}
-              >
-                {field.label ? (
-                  field.label
-                ) : (
-                  <Box
-                    component="span"
-                    sx={{ color: "error.main", fontStyle: "italic" }}
+            <Stack spacing={0.8} sx={{ minWidth: 0, flex: 1 }}>
+              <Stack spacing={0.45} sx={{ minWidth: 0 }}>
+                <Stack
+                  direction="row"
+                  spacing={0.75}
+                  alignItems="center"
+                  flexWrap="wrap"
+                  useFlexGap
+                >
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight={800}
+                    sx={{
+                      color: isDragging
+                        ? color
+                        : isSelected
+                          ? color
+                          : "text.primary",
+                      lineHeight: 1.3,
+                      wordBreak: "break-word",
+                    }}
                   >
-                    Missing label
-                  </Box>
-                )}
-              </Typography>
+                    {field.label ? (
+                      field.label
+                    ) : (
+                      <Box
+                        component="span"
+                        sx={{ color: "error.main", fontStyle: "italic" }}
+                      >
+                        Missing label
+                      </Box>
+                    )}
+                  </Typography>
 
-              {/* Chips row */}
-              <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                  <Chip
+                    label={`#${index + 1}`}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      height: 20,
+                      fontSize: "0.68rem",
+                      fontWeight: 700,
+                      borderColor: alpha(color, 0.18),
+                      bgcolor: alpha(color, 0.04),
+                    }}
+                  />
+                </Stack>
+
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ lineHeight: 1.45, display: "block" }}
+                >
+                  {field.helpText ||
+                    `Configure this ${typeLabel.toLowerCase()} field in the inspector.`}
+                </Typography>
+              </Stack>
+
+              <Stack direction="row" spacing={0.55} flexWrap="wrap" useFlexGap>
                 <Chip
                   label={typeLabel}
                   size="small"
                   sx={{
-                    height: 18,
-                    fontSize: "0.65rem",
-                    fontWeight: 700,
-                    bgcolor: alpha(color, 0.1),
+                    height: 20,
+                    fontSize: "0.68rem",
+                    fontWeight: 800,
+                    bgcolor: alpha(color, 0.12),
                     color,
                     border: "none",
                   }}
                 />
                 <Chip
-                  label={field.width === "full" ? "Full" : "Half"}
+                  label={field.width === "full" ? "Full width" : "Half width"}
                   size="small"
                   variant="outlined"
-                  sx={{ height: 18, fontSize: "0.65rem" }}
+                  sx={{
+                    height: 20,
+                    fontSize: "0.68rem",
+                    borderColor: alpha("#0f172a", 0.1),
+                    bgcolor: alpha("#ffffff", 0.55),
+                  }}
                 />
                 {field.required && (
                   <Chip
                     label="Required"
                     size="small"
                     color="primary"
-                    sx={{ height: 18, fontSize: "0.65rem" }}
+                    sx={{ height: 20, fontSize: "0.68rem", fontWeight: 700 }}
                   />
                 )}
               </Stack>
-            </Box>
+            </Stack>
           </Stack>
 
-          {/* Right: action icon buttons — visible on hover or when selected */}
           <Stack
-            className="field-actions"
             direction="row"
-            spacing={0}
-            sx={{
-              flexShrink: 0,
-              opacity: isSelected ? 1 : 0,
-              transition: "opacity 160ms ease",
-            }}
+            spacing={0.35}
+            alignItems="center"
+            sx={{ flexShrink: 0, pl: 0.5 }}
           >
-            <Tooltip title="Move up" arrow>
-              <span>
+            <Tooltip title="Drag to reorder" arrow>
+              <Box
+                className="drag-handle"
+                onClick={(e) => e.stopPropagation()}
+                {...attributes}
+                {...listeners}
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 34,
+                  height: 34,
+                  borderRadius: 2,
+                  border: "1px solid",
+                  borderColor: isDragging
+                    ? alpha(color, 0.28)
+                    : alpha("#0f172a", 0.08),
+                  bgcolor: isDragging
+                    ? alpha(color, 0.12)
+                    : alpha("#ffffff", 0.72),
+                  color: isDragging ? color : "text.secondary",
+                  cursor: isDragging ? "grabbing" : "grab",
+                  opacity: showControls ? 1 : 0,
+                  transform: showControls ? "translateX(0)" : "translateX(4px)",
+                  transition:
+                    "opacity 160ms ease, transform 160ms ease, background-color 160ms ease, color 160ms ease, border-color 160ms ease",
+                  boxShadow: isDragging
+                    ? `0 8px 18px ${alpha(color, 0.16)}`
+                    : "none",
+                  "&:hover": {
+                    bgcolor: alpha(color, 0.08),
+                    borderColor: alpha(color, 0.22),
+                    color,
+                  },
+                }}
+              >
+                <DragIndicatorRoundedIcon fontSize="small" />
+              </Box>
+            </Tooltip>
+
+            <Stack
+              className="field-actions"
+              direction="row"
+              spacing={0.15}
+              sx={{
+                flexShrink: 0,
+                opacity: showControls ? 1 : 0,
+                transform: showControls ? "translateX(0)" : "translateX(4px)",
+                transition: "opacity 160ms ease, transform 160ms ease",
+              }}
+            >
+              <Tooltip title="Move up" arrow>
+                <span>
+                  <IconButton
+                    size="small"
+                    disabled={isFirst}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMoveUp();
+                    }}
+                    sx={{
+                      opacity: isFirst ? 0.3 : 1,
+                      borderRadius: 2,
+                      color: "text.secondary",
+                      "&:hover": { bgcolor: alpha(color, 0.08), color },
+                    }}
+                    aria-label="Move field up"
+                  >
+                    <ArrowUpwardRoundedIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+
+              <Tooltip title="Move down" arrow>
+                <span>
+                  <IconButton
+                    size="small"
+                    disabled={isLast}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onMoveDown();
+                    }}
+                    sx={{
+                      opacity: isLast ? 0.3 : 1,
+                      borderRadius: 2,
+                      color: "text.secondary",
+                      "&:hover": { bgcolor: alpha(color, 0.08), color },
+                    }}
+                    aria-label="Move field down"
+                  >
+                    <ArrowDownwardRoundedIcon fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+
+              <Tooltip title="Duplicate field" arrow>
                 <IconButton
                   size="small"
-                  disabled={isFirst}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onMoveUp();
+                    onDuplicate();
                   }}
-                  sx={{ opacity: isFirst ? 0.3 : 1 }}
-                  aria-label="Move field up"
+                  aria-label="Duplicate field"
+                  sx={{
+                    borderRadius: 2,
+                    color: "text.secondary",
+                    "&:hover": { bgcolor: alpha(color, 0.08), color },
+                  }}
                 >
-                  <ArrowUpwardRoundedIcon fontSize="small" />
+                  <ContentCopyRoundedIcon fontSize="small" />
                 </IconButton>
-              </span>
-            </Tooltip>
+              </Tooltip>
 
-            <Tooltip title="Move down" arrow>
-              <span>
+              <Tooltip title="Delete field" arrow>
                 <IconButton
                   size="small"
-                  disabled={isLast}
+                  color="error"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onMoveDown();
+                    onDelete();
                   }}
-                  sx={{ opacity: isLast ? 0.3 : 1 }}
-                  aria-label="Move field down"
+                  aria-label="Delete field"
+                  sx={{
+                    borderRadius: 2,
+                    "&:hover": { bgcolor: alpha("#ef4444", 0.08) },
+                  }}
                 >
-                  <ArrowDownwardRoundedIcon fontSize="small" />
+                  <DeleteOutlineRoundedIcon fontSize="small" />
                 </IconButton>
-              </span>
-            </Tooltip>
-
-            <Tooltip title="Duplicate field" arrow>
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDuplicate();
-                }}
-                aria-label="Duplicate field"
-              >
-                <ContentCopyRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-
-            <Tooltip title="Delete field" arrow>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete();
-                }}
-                aria-label="Delete field"
-              >
-                <DeleteOutlineRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+              </Tooltip>
+            </Stack>
           </Stack>
         </Stack>
 
-        {/* ── Input preview ── */}
-        <Box sx={{ pl: 0.25 }}>
+        <Box
+          sx={{
+            ml: { xs: 0, sm: 6.25 },
+            p: 1.15,
+            borderRadius: 2.5,
+            border: "1px solid",
+            borderColor: alpha("#0f172a", 0.06),
+            bgcolor: alpha("#ffffff", 0.62),
+          }}
+        >
           {field.label && field.type !== "checkbox" && (
             <Typography
               variant="caption"
-              fontWeight={600}
+              fontWeight={700}
               color="text.secondary"
-              sx={{ display: "block", mb: 0.4 }}
+              sx={{ display: "block", mb: 0.55, lineHeight: 1.3 }}
             >
               {field.label}
               {field.required && (
@@ -425,16 +618,6 @@ function BuilderFieldCard({
           )}
 
           <FieldPreview field={field} />
-
-          {field.helpText && (
-            <Typography
-              variant="caption"
-              color="text.disabled"
-              sx={{ display: "block", mt: 0.4, lineHeight: 1.4 }}
-            >
-              {field.helpText}
-            </Typography>
-          )}
         </Box>
       </Stack>
     </Box>

@@ -1,14 +1,13 @@
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import { alpha, Box, Chip, Stack, Tooltip, Typography } from "@mui/material";
-import PanelSection from "../shared/PanelSection";
-import { fieldTypeMeta } from "../shared/fieldMeta";
 import { fieldCatalog } from "../../data/fieldCatalog";
 import { useBuilderStore } from "../../store/builderStore";
 import { FieldCategory, FieldType } from "../../types/form";
-
-// ─────────────────────────────────────────────
-// Single palette card
-// ─────────────────────────────────────────────
+import { fieldTypeMeta } from "../shared/fieldMeta";
+import PanelSection from "../shared/PanelSection";
+import { DND_ITEM_TYPE } from "./dnd";
 
 interface PaletteCardProps {
   type: FieldType;
@@ -19,6 +18,14 @@ interface PaletteCardProps {
 
 function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
   const { icon, color } = fieldTypeMeta[type];
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: `palette-${type}`,
+      data: {
+        type: DND_ITEM_TYPE.paletteField,
+        fieldType: type,
+      },
+    });
 
   return (
     <Tooltip
@@ -27,8 +34,7 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
       arrow
     >
       <Box
-        role="button"
-        tabIndex={0}
+        ref={setNodeRef}
         onClick={() => onAdd(type)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -36,6 +42,8 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
             onAdd(type);
           }
         }}
+        {...listeners}
+        {...attributes}
         sx={{
           display: "flex",
           alignItems: "flex-start",
@@ -45,26 +53,29 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
           border: "1px solid",
           borderColor: "divider",
           bgcolor: "background.paper",
-          cursor: "pointer",
+          cursor: isDragging ? "grabbing" : "grab",
           transition: "all 160ms ease",
           outline: "none",
+          opacity: isDragging ? 0.55 : 1,
+          transform: CSS.Translate.toString(transform),
           "&:hover": {
             borderColor: alpha(color, 0.5),
             bgcolor: alpha(color, 0.05),
             boxShadow: `0 2px 12px ${alpha(color, 0.14)}`,
-            transform: "translateY(-1px)",
+            transform: isDragging
+              ? CSS.Translate.toString(transform)
+              : "translateY(-1px)",
           },
           "&:focus-visible": {
             borderColor: color,
             boxShadow: `0 0 0 3px ${alpha(color, 0.22)}`,
           },
           "&:active": {
-            transform: "translateY(0)",
+            transform: CSS.Translate.toString(transform),
             boxShadow: "none",
           },
         }}
       >
-        {/* Icon badge */}
         <Box
           sx={{
             flexShrink: 0,
@@ -81,7 +92,6 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
           {icon}
         </Box>
 
-        {/* Text */}
         <Stack spacing={0.2} sx={{ minWidth: 0 }}>
           <Typography
             variant="subtitle2"
@@ -101,10 +111,6 @@ function PaletteCard({ type, title, description, onAdd }: PaletteCardProps) {
     </Tooltip>
   );
 }
-
-// ─────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────
 
 const GROUPS: FieldCategory[] = ["Basic", "Choice"];
 
@@ -130,7 +136,6 @@ function FieldPalette() {
           const items = fieldCatalog.filter((item) => item.category === group);
           return (
             <Stack key={group} spacing={0.75}>
-              {/* Group label */}
               <Stack
                 direction="row"
                 alignItems="center"
@@ -150,7 +155,6 @@ function FieldPalette() {
                 </Typography>
               </Stack>
 
-              {/* Cards */}
               <Stack spacing={0.6}>
                 {items.map((item) => (
                   <PaletteCard
