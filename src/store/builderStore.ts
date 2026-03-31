@@ -7,6 +7,8 @@ import {
   FieldType,
   FormDefinition,
   FormField,
+  PreviewFieldState,
+  PreviewFieldValue,
 } from "../types/form";
 
 // ─────────────────────────────────────────────
@@ -14,14 +16,17 @@ import {
 // ─────────────────────────────────────────────
 
 interface BuilderState {
-  // ── Core data ──────────────────────────────
+  // ── Core data ───────────────────────────────
   /** The currently active form definition. */
   form: FormDefinition;
 
   /** ID of the field currently selected in the canvas, or null. */
   selectedFieldId: string | null;
 
-  // ── UI mode ────────────────────────────────
+  /** Store-backed values for the interactive preview/demo form. */
+  previewFieldValues: PreviewFieldState;
+
+  // ── UI mode ─────────────────────────────────
   /**
    * When true, the preview panel is the primary focus.
    * The builder canvas and inspector are visually de-emphasised.
@@ -34,14 +39,14 @@ interface BuilderState {
    */
   viewportMode: "desktop" | "mobile";
 
-  // ── Analysis ───────────────────────────────
+  // ── Analysis ────────────────────────────────
   /**
    * The latest UX analysis result for the current form.
    * Re-computed automatically after every mutation.
    */
   analysisResult: AnalysisResult;
 
-  // ── Actions: form-level ────────────────────
+  // ── Actions: form-level ─────────────────────
   /** Replace the entire form with a new definition and re-run analysis. */
   setForm: (form: FormDefinition) => void;
 
@@ -51,11 +56,11 @@ interface BuilderState {
   /** Reset to the primary demo template. */
   resetToPrimaryTemplate: () => void;
 
-  // ── Actions: field selection ───────────────
+  // ── Actions: field selection ────────────────
   /** Set the active field in the canvas inspector. */
   selectField: (fieldId: string | null) => void;
 
-  // ── Actions: field mutations ───────────────
+  // ── Actions: field mutations ────────────────
   /** Append a new field of the given type to the end of the field list. */
   addField: (type: FieldType) => void;
 
@@ -71,7 +76,14 @@ interface BuilderState {
   /** Swap a field one position up or down in the list. */
   moveField: (fieldId: string, direction: "up" | "down") => void;
 
-  // ── Actions: UI mode ───────────────────────
+  // ── Actions: preview values ─────────────────
+  /** Set a single preview field value by field ID. */
+  setPreviewFieldValue: (fieldId: string, value: PreviewFieldValue) => void;
+
+  /** Reset all preview field values to defaults derived from the current form. */
+  resetPreviewFieldValues: () => void;
+
+  // ── Actions: UI mode ────────────────────────
   /** Toggle between builder mode and preview mode. */
   togglePreviewMode: () => void;
 
@@ -97,13 +109,47 @@ const cloneTemplate = (template: FormDefinition): FormDefinition => ({
 const createId = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 
+const getDefaultPreviewValue = (field: FormField): PreviewFieldValue => {
+  if (field.type === "checkbox") {
+    return false;
+  }
+
+  if (field.type === "number") {
+    return "";
+  }
+
+  return "";
+};
+
+const buildPreviewFieldValues = (form: FormDefinition): PreviewFieldState =>
+  form.fields.reduce<PreviewFieldState>((acc, field) => {
+    acc[field.id] = getDefaultPreviewValue(field);
+    return acc;
+  }, {});
+
+const syncPreviewFieldValues = (
+  form: FormDefinition,
+  currentValues: PreviewFieldState,
+): PreviewFieldState =>
+  form.fields.reduce<PreviewFieldState>((acc, field) => {
+    acc[field.id] =
+      field.id in currentValues
+        ? currentValues[field.id]
+        : getDefaultPreviewValue(field);
+    return acc;
+  }, {});
+
 const buildStateFromForm = (
   form: FormDefinition,
-  overrides?: Partial<Pick<BuilderState, "selectedFieldId" | "previewMode">>,
+  overrides?: Partial<
+    Pick<BuilderState, "selectedFieldId" | "previewMode" | "previewFieldValues">
+  >,
 ) => ({
   form,
   selectedFieldId: overrides?.selectedFieldId ?? form.fields[0]?.id ?? null,
   previewMode: overrides?.previewMode ?? false,
+  previewFieldValues:
+    overrides?.previewFieldValues ?? buildPreviewFieldValues(form),
   analysisResult: resolveAnalysis(form),
 });
 
@@ -204,6 +250,7 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   // ── Initial state ───────────────────────────
   form: initialForm,
   selectedFieldId: initialForm.fields[0]?.id ?? null,
+  previewFieldValues: buildPreviewFieldValues(initialForm),
   previewMode: false,
   viewportMode: "desktop",
   analysisResult: resolveAnalysis(initialForm),
@@ -238,6 +285,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       return {
         form,
         selectedFieldId: newField.id,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
         analysisResult: analyzeForm(form),
       };
     }),
@@ -252,6 +303,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       };
       return {
         form,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
         analysisResult: analyzeForm(form),
       };
     }),
@@ -265,6 +320,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       return {
         form,
         selectedFieldId: nextFields[0]?.id ?? null,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
         analysisResult: analyzeForm(form),
       };
     }),
@@ -294,6 +353,10 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       return {
         form,
         selectedFieldId: duplicate.id,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
         analysisResult: analyzeForm(form),
       };
     }),
@@ -317,9 +380,28 @@ export const useBuilderStore = create<BuilderState>((set) => ({
       const form: FormDefinition = { ...state.form, fields };
       return {
         form,
+        previewFieldValues: syncPreviewFieldValues(
+          form,
+          state.previewFieldValues,
+        ),
         analysisResult: analyzeForm(form),
       };
     }),
+
+  // ── Preview value actions ───────────────────
+
+  setPreviewFieldValue: (fieldId, value) =>
+    set((state) => ({
+      previewFieldValues: {
+        ...state.previewFieldValues,
+        [fieldId]: value,
+      },
+    })),
+
+  resetPreviewFieldValues: () =>
+    set((state) => ({
+      previewFieldValues: buildPreviewFieldValues(state.form),
+    })),
 
   // ── UI mode actions ─────────────────────────
 

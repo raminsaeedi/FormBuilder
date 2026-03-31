@@ -15,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { ChangeEvent } from "react";
-import { FormField } from "../../types/form";
+import { FormField, PreviewFieldValue } from "../../types/form";
 
 // ─────────────────────────────────────────────
 // Props
@@ -26,7 +26,7 @@ export interface FieldRendererProps {
   field: FormField;
   /**
    * When true, all inputs are rendered as read-only (preview mode).
-   * When false, inputs are interactive (future live-form mode).
+   * When false, inputs are interactive.
    * @default true
    */
   readOnly?: boolean;
@@ -35,16 +35,10 @@ export interface FieldRendererProps {
    * Defaults to `"1 / -1"` for full-width fields and `"auto"` for half-width.
    */
   gridColumn?: string;
-  /**
-   * Optional controlled value used by interactive preview/demo mode.
-   * Only checkbox and radio currently consume this prop.
-   */
-  value?: string | boolean;
-  /**
-   * Optional change handler used by interactive preview/demo mode.
-   * Only checkbox and radio currently emit changes through this callback.
-   */
-  onChange?: (value: string | boolean) => void;
+  /** Controlled field value used by the preview form. */
+  value?: PreviewFieldValue;
+  /** Controlled change handler used by the preview form. */
+  onChange?: (value: PreviewFieldValue) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -74,19 +68,16 @@ function buildLabel(label: string, required: boolean) {
   );
 }
 
+function getStringValue(value: PreviewFieldValue | undefined) {
+  return typeof value === "string" || typeof value === "number"
+    ? String(value)
+    : "";
+}
+
 // ─────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────
 
-/**
- * `FieldRenderer` — renders a single `FormField` as a real MUI input.
- *
- * Supports all 10 field types: text, email, phone, password, number, date,
- * textarea, select, radio, checkbox.
- *
- * Use [`readOnly`](src/components/shared/FieldRenderer.tsx:25) for preview panels and [`value`](src/components/shared/FieldRenderer.tsx:35) / [`onChange`](src/components/shared/FieldRenderer.tsx:40)
- * for interactive demo controls.
- */
 function FieldRenderer({
   field,
   readOnly = true,
@@ -97,6 +88,18 @@ function FieldRenderer({
   const col = gridColumn ?? (field.width === "full" ? "1 / -1" : "auto");
   const label = buildLabel(field.label, field.required);
   const helperText = field.helpText || undefined;
+
+  const handleTextLikeChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    if (field.type === "number") {
+      const nextValue = event.target.value;
+      onChange?.(nextValue === "" ? "" : Number(nextValue));
+      return;
+    }
+
+    onChange?.(event.target.value);
+  };
 
   const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange?.(event.target.checked);
@@ -123,6 +126,8 @@ function FieldRenderer({
         multiline
         minRows={4}
         fullWidth
+        value={getStringValue(value)}
+        onChange={handleTextLikeChange}
         InputProps={{ readOnly }}
         sx={{ gridColumn: col }}
       />
@@ -136,7 +141,7 @@ function FieldRenderer({
         <InputLabel>{label}</InputLabel>
         <Select
           label={field.label || "Untitled"}
-          value={typeof value === "string" ? value : ""}
+          value={getStringValue(value)}
           onChange={handleSelectChange}
           inputProps={{ readOnly }}
         >
@@ -171,7 +176,7 @@ function FieldRenderer({
         </FormLabel>
         <RadioGroup
           name={field.id}
-          value={typeof value === "string" ? value : ""}
+          value={getStringValue(value)}
           onChange={handleRadioChange}
         >
           {field.options?.map((option) => (
@@ -229,6 +234,8 @@ function FieldRenderer({
         placeholder={field.placeholder}
         helperText={helperText}
         fullWidth
+        value={getStringValue(value)}
+        onChange={handleTextLikeChange}
         InputProps={{ readOnly }}
         sx={{ gridColumn: col }}
       />
@@ -244,6 +251,8 @@ function FieldRenderer({
         placeholder={field.placeholder}
         helperText={helperText}
         fullWidth
+        value={getStringValue(value)}
+        onChange={handleTextLikeChange}
         InputProps={{ readOnly }}
         sx={{ gridColumn: col }}
       />
@@ -258,6 +267,8 @@ function FieldRenderer({
         type="date"
         helperText={helperText}
         fullWidth
+        value={getStringValue(value)}
+        onChange={handleTextLikeChange}
         InputLabelProps={{ shrink: true }}
         InputProps={{ readOnly }}
         sx={{ gridColumn: col }}
@@ -276,6 +287,8 @@ function FieldRenderer({
       placeholder={field.placeholder}
       helperText={helperText}
       fullWidth
+      value={getStringValue(value)}
+      onChange={handleTextLikeChange}
       InputProps={{ readOnly }}
       sx={{ gridColumn: col }}
     />

@@ -51,6 +51,10 @@ export interface FormField {
   options?: FieldOption[];
 }
 
+export type PreviewScalarFieldType = Exclude<FieldType, "checkbox">;
+export type PreviewFieldValue = string | number | boolean;
+export type PreviewFieldState = Record<string, PreviewFieldValue>;
+
 // ─────────────────────────────────────────────
 // Section Model (optional grouping layer)
 // ─────────────────────────────────────────────
