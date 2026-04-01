@@ -35,11 +35,7 @@ const PaletteCard = memo(function PaletteCard({
     });
 
   return (
-    <Tooltip
-      title={`Drag into the canvas or click to add a ${title} field`}
-      placement="right"
-      arrow
-    >
+    <Tooltip title={`Add ${title}`} placement="right" arrow>
       <Box
         ref={setNodeRef}
         onClick={() => onAdd(type)}
@@ -55,8 +51,8 @@ const PaletteCard = memo(function PaletteCard({
           position: "relative",
           display: "flex",
           alignItems: "flex-start",
-          gap: 1.35,
-          p: 1.4,
+          gap: 1,
+          p: 1.1,
           borderRadius: 1,
           border: "1px solid",
           borderColor: isDragging ? alpha(color, 0.42) : alpha("#0f172a", 0.08),
@@ -106,8 +102,8 @@ const PaletteCard = memo(function PaletteCard({
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 34,
-            height: 34,
+            width: 32,
+            height: 32,
             borderRadius: 1,
             bgcolor: alpha(color, isDragging ? 0.18 : 0.1),
             color,
@@ -119,12 +115,12 @@ const PaletteCard = memo(function PaletteCard({
         </Box>
 
         <Stack
-          spacing={0.35}
+          spacing={0.2}
           sx={{ minWidth: 0, flex: 1, position: "relative", zIndex: 1 }}
         >
           <Stack
             direction="row"
-            spacing={0.75}
+            spacing={0.2}
             alignItems="center"
             justifyContent="space-between"
           >
@@ -155,22 +151,9 @@ const PaletteCard = memo(function PaletteCard({
           <Typography
             variant="caption"
             color="text.secondary"
-            sx={{ lineHeight: 1.45 }}
+            sx={{ lineHeight: 1.4 }}
           >
             {description}
-          </Typography>
-
-          <Typography
-            variant="caption"
-            sx={{
-              color: isDragging ? color : "text.disabled",
-              fontWeight: 600,
-              transition: "color 160ms ease",
-            }}
-          >
-            {isDragging
-              ? "Move to the canvas and release to add"
-              : "Click to add immediately or drag into the canvas for placement"}
           </Typography>
         </Stack>
       </Box>
@@ -187,7 +170,7 @@ function FieldPalette() {
     <PanelSection
       eyebrow="Palette"
       title="Field types"
-      description="Choose a field type, then add it with a click or place it more deliberately with drag and drop."
+      description="Compact field types for quick form building. Click to add or drag into the canvas."
       actions={
         <Chip
           icon={<LayersRoundedIcon />}
@@ -197,24 +180,15 @@ function FieldPalette() {
         />
       }
     >
-      <Stack spacing={1.75}>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ lineHeight: 1.6 }}
-        >
-          Tip: click for a quick add, or drag a field into the canvas when you
-          want a more guided placement flow.
-        </Typography>
-
-        <Stack spacing={2.75}>
+      <Stack spacing={1}>
+        <Stack spacing={2}>
           {GROUPS.map((group) => {
             const items = fieldCatalog.filter(
               (item) => item.category === group,
             );
 
             return (
-              <Stack key={group} spacing={0.9}>
+              <Stack key={group} spacing={0.75}>
                 <Stack
                   direction="row"
                   alignItems="center"
@@ -234,7 +208,7 @@ function FieldPalette() {
                   </Typography>
                 </Stack>
 
-                <Stack spacing={0.75}>
+                <Stack spacing={0.6}>
                   {items.map((item) => (
                     <PaletteCard
                       key={item.type}

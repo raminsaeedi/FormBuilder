@@ -148,8 +148,8 @@ function App() {
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
-                    lg: "250px minmax(0, 1fr) 320px",
-                    xl: "270px minmax(0, 1fr) 340px",
+                    lg: "220px minmax(0, 1fr) 300px",
+                    xl: "240px minmax(0, 1fr) 320px",
                   },
                   gap: { xs: 2.25, lg: 2.5, xl: 3 },
                   alignItems: "start",
