@@ -220,7 +220,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
         position: "relative",
         overflow: "visible",
         p: 1.9,
-        borderRadius: 3.25,
+        borderRadius: 1.625,
         border: "1px solid",
         borderColor: isDragging
           ? alpha(color, 0.5)
@@ -355,7 +355,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                 justifyContent: "center",
                 width: 40,
                 height: 40,
-                borderRadius: 2.75,
+                borderRadius: 1.375,
                 bgcolor: alpha(
                   color,
                   isDragging ? 0.18 : isOver ? 0.16 : isSelected ? 0.14 : 0.1,

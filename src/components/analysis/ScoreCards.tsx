@@ -136,8 +136,9 @@ function ScoreCard({
     <Tooltip title={tooltip} arrow placement="top">
       <Box
         sx={{
-          minWidth: 228,
-          flex: "1 1 228px",
+          minWidth: { xs: 220, sm: 236 },
+          width: { xs: 220, sm: 236 },
+          flex: "0 0 auto",
           borderRadius: "18px",
           border: "1px solid",
           borderColor: alpha("#0f172a", 0.08),
@@ -148,6 +149,7 @@ function ScoreCard({
           transition:
             "border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease",
           cursor: "default",
+          scrollSnapAlign: "start",
           "&:hover": {
             borderColor: alpha(color, 0.24),
             boxShadow: `0 14px 30px ${alpha(color, 0.1)}`,
@@ -277,13 +279,25 @@ function ScoreCards() {
   return (
     <Box
       sx={{
-        display: "grid",
-        gridTemplateColumns: {
-          xs: "repeat(1, minmax(0, 1fr))",
-          sm: "repeat(2, minmax(0, 1fr))",
-          xl: "repeat(4, minmax(0, 1fr))",
-        },
+        display: "flex",
         gap: 1.5,
+        overflowX: "auto",
+        overflowY: "hidden",
+        pb: 0.5,
+        pr: 0.25,
+        scrollSnapType: "x proximity",
+        WebkitOverflowScrolling: "touch",
+        "&::-webkit-scrollbar": {
+          height: 8,
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: alpha("#0f172a", 0.16),
+          borderRadius: 999,
+        },
+        "&::-webkit-scrollbar-track": {
+          backgroundColor: alpha("#0f172a", 0.04),
+          borderRadius: 999,
+        },
       }}
     >
       {cards.map((card) => (
