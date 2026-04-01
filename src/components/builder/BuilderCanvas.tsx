@@ -33,7 +33,7 @@ function EmptyCanvas({
         textAlign: "center",
         border: "1.5px dashed",
         borderColor: isOver ? alpha("#2563eb", 0.42) : alpha("#0f172a", 0.12),
-        borderRadius: 4.5,
+        borderRadius: 1.5,
         bgcolor: isOver ? alpha("#2563eb", 0.05) : alpha("#f8fafc", 0.9),
         boxShadow: isOver
           ? `0 0 0 4px ${alpha("#2563eb", 0.08)}`
@@ -63,7 +63,7 @@ function EmptyCanvas({
           justifyContent: "center",
           width: 56,
           height: 56,
-          borderRadius: "50%",
+          borderRadius: 1.5,
           bgcolor: alpha("#2563eb", isOver ? 0.14 : 0.08),
           color: "primary.main",
           mb: 2,
@@ -143,7 +143,7 @@ function RemoveDropZone() {
         gap: 1,
         minHeight: 64,
         px: 2,
-        borderRadius: 3,
+        borderRadius: 1.5,
         border: "1px dashed",
         borderColor: isOver ? alpha("#ef4444", 0.42) : alpha("#ef4444", 0.18),
         bgcolor: isOver ? alpha("#ef4444", 0.08) : alpha("#ef4444", 0.03),
@@ -235,7 +235,7 @@ function BuilderCanvas() {
           ref={setNodeRef}
           sx={{
             position: "relative",
-            borderRadius: 4.5,
+            borderRadius: 1.5,
             transition:
               "box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease",
             bgcolor: isOver ? alpha("#2563eb", 0.035) : "transparent",
@@ -274,7 +274,7 @@ function BuilderCanvas() {
                     gap: 1,
                     px: 1.35,
                     py: 1,
-                    borderRadius: 3,
+                    borderRadius: 1.5,
                     border: "1px dashed",
                     borderColor: isOver
                       ? alpha("#2563eb", 0.34)
@@ -294,7 +294,7 @@ function BuilderCanvas() {
                     sx={{
                       width: 10,
                       height: 10,
-                      borderRadius: "50%",
+                      borderRadius: 1.5,
                       bgcolor: isOver ? "primary.main" : alpha("#0f172a", 0.18),
                       boxShadow: isOver
                         ? `0 0 0 6px ${alpha("#2563eb", 0.12)}`

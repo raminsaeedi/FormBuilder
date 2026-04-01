@@ -25,7 +25,7 @@ function FieldPreview({ field }: { field: FormField }) {
       sx={{
         border: "1px solid",
         borderColor: alpha("#0f172a", 0.08),
-        borderRadius: 2,
+        borderRadius: 1,
         px: 1.25,
         py: 0.85,
         bgcolor: alpha("#ffffff", 0.82),
@@ -45,7 +45,7 @@ function FieldPreview({ field }: { field: FormField }) {
         sx={{
           border: "1px solid",
           borderColor: alpha("#0f172a", 0.08),
-          borderRadius: 2,
+          borderRadius: 1,
           minHeight: 72,
           bgcolor: alpha("#ffffff", 0.82),
           px: 1.25,
@@ -76,7 +76,7 @@ function FieldPreview({ field }: { field: FormField }) {
                 height: 13,
                 border: "1.5px solid",
                 borderColor: "divider",
-                borderRadius: "50%",
+                borderRadius: 1,
                 flexShrink: 0,
                 bgcolor: "background.paper",
               }}
@@ -99,7 +99,7 @@ function FieldPreview({ field }: { field: FormField }) {
             height: 14,
             border: "1.5px solid",
             borderColor: "divider",
-            borderRadius: "4px",
+            borderRadius: "2px",
             flexShrink: 0,
             bgcolor: "background.paper",
           }}
@@ -290,7 +290,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
           right: 18,
           top: -10,
           height: 6,
-          borderRadius: 999,
+          borderRadius: 1.625,
           pointerEvents: "none",
           bgcolor: isOver && !isDragging ? alpha(color, 0.9) : "transparent",
           boxShadow:
@@ -496,7 +496,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                   justifyContent: "center",
                   width: 36,
                   height: 36,
-                  borderRadius: 2.25,
+                  borderRadius: 1.25,
                   border: "1px solid",
                   borderColor: isDragging
                     ? alpha(color, 0.28)
@@ -551,7 +551,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                     }}
                     sx={{
                       opacity: isFirst ? 0.3 : 1,
-                      borderRadius: 2,
+                      borderRadius: 1,
                       color: "text.secondary",
                       "&:hover": { bgcolor: alpha(color, 0.08), color },
                     }}
@@ -573,7 +573,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                     }}
                     sx={{
                       opacity: isLast ? 0.3 : 1,
-                      borderRadius: 2,
+                      borderRadius: 1,
                       color: "text.secondary",
                       "&:hover": { bgcolor: alpha(color, 0.08), color },
                     }}
@@ -593,7 +593,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                   }}
                   aria-label="Duplicate field"
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 1,
                     color: "text.secondary",
                     "&:hover": { bgcolor: alpha(color, 0.08), color },
                   }}
@@ -612,7 +612,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                   }}
                   aria-label="Delete field"
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: 1,
                     border: "1px solid",
                     borderColor: alpha("#ef4444", 0.16),
                     bgcolor: alpha("#ef4444", showControls ? 0.06 : 0.03),
@@ -636,7 +636,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
           sx={{
             ml: { xs: 0, sm: 6.25 },
             p: 1.25,
-            borderRadius: 2.75,
+            borderRadius: 1.75,
             border: "1px solid",
             borderColor: isOver ? alpha(color, 0.14) : alpha("#0f172a", 0.06),
             bgcolor: isOver ? alpha(color, 0.04) : alpha("#ffffff", 0.62),
@@ -687,7 +687,7 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
                 }}
                 aria-label="Remove this field"
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 1,
                   border: "1px solid",
                   borderColor: alpha("#ef4444", 0.16),
                   bgcolor: alpha("#ef4444", 0.05),
