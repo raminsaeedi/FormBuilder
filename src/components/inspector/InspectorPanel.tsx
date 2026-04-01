@@ -23,6 +23,7 @@ import {
 import PanelSection from "../shared/PanelSection";
 import { fieldTypeMeta } from "../shared/fieldMeta";
 import { useBuilderStore } from "../../store/builderStore";
+import type { AppView } from "../../store/builderStore";
 import { FieldOption, FieldWidth } from "../../types/form";
 
 // ─────────────────────────────────────────────
@@ -66,7 +67,7 @@ function SectionHeading({ children }: { children: string }) {
 // No-selection empty state
 // ──────────────────────────────────��──────────
 
-function NoSelection() {
+function NoSelection({ activeView }: { activeView: AppView }) {
   return (
     <Box
       sx={{
@@ -95,15 +96,18 @@ function NoSelection() {
         <MouseRoundedIcon />
       </Box>
       <Typography variant="subtitle2" gutterBottom>
-        Select a field to inspect
+        {activeView === "analysis"
+          ? "Select a field to review"
+          : "Select a field to inspect"}
       </Typography>
       <Typography
         variant="body2"
         color="text.secondary"
-        sx={{ lineHeight: 1.6, maxWidth: 220, mx: "auto" }}
+        sx={{ lineHeight: 1.6, maxWidth: 240, mx: "auto" }}
       >
-        Click any field in the canvas to edit its label, placeholder, help text,
-        width, and required state.
+        {activeView === "analysis"
+          ? "Choose a field from the form canvas first, then review its content and behaviour next to the UX findings."
+          : "Click any field in the canvas to edit its label, placeholder, help text, width, and required state."}
       </Typography>
     </Box>
   );
@@ -211,6 +215,7 @@ function OptionsEditor({
 
 function InspectorPanel() {
   const selectedFieldId = useBuilderStore((s) => s.selectedFieldId);
+  const activeView = useBuilderStore((s) => s.activeView);
   const field = useBuilderStore(
     (s) => s.form.fields.find((f) => f.id === selectedFieldId) ?? null,
   );
@@ -220,9 +225,13 @@ function InspectorPanel() {
 
   return (
     <PanelSection
-      eyebrow="Inspector"
-      title="Field settings"
-      description="Fine-tune the selected field's content, layout, and behaviour."
+      eyebrow={activeView === "analysis" ? "Analysis workspace" : "Inspector"}
+      title={activeView === "analysis" ? "Selected field" : "Field settings"}
+      description={
+        activeView === "analysis"
+          ? "Refine the selected field while comparing it with the UX findings on the right."
+          : "Fine-tune the selected field's content, layout, and behaviour."
+      }
       actions={
         meta && field ? (
           <Chip
@@ -257,10 +266,46 @@ function InspectorPanel() {
       }
     >
       {field ? (
-        <Stack spacing={2.25}>
+        <Stack spacing={activeView === "analysis" ? 2 : 2.25}>
+          {activeView === "analysis" && (
+            <Box
+              sx={{
+                px: 1.25,
+                py: 1,
+                borderRadius: "14px",
+                border: "1px solid",
+                borderColor: alpha("#0f172a", 0.08),
+                bgcolor: alpha("#f8fafc", 0.9),
+              }}
+            >
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={0.9}
+                justifyContent="space-between"
+                alignItems={{ xs: "flex-start", sm: "center" }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Reviewing
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ lineHeight: 1.35 }}>
+                    {field.label.trim() || meta?.label || "Untitled field"}
+                  </Typography>
+                </Box>
+                <Chip
+                  size="small"
+                  label={field.required ? "Required" : "Optional"}
+                  color={field.required ? "primary" : "default"}
+                  variant={field.required ? "filled" : "outlined"}
+                />
+              </Stack>
+            </Box>
+          )}
           {/* ── Section: Content ── */}
           <Stack spacing={1.5}>
-            <SectionHeading>Content</SectionHeading>
+            <SectionHeading>
+              {activeView === "analysis" ? "Content clarity" : "Content"}
+            </SectionHeading>
 
             {/* Label */}
             <TextField
@@ -313,7 +358,11 @@ function InspectorPanel() {
 
           {/* ── Section: Layout & behaviour ── */}
           <Stack spacing={1.5}>
-            <SectionHeading>Layout & behaviour</SectionHeading>
+            <SectionHeading>
+              {activeView === "analysis"
+                ? "Layout & completion"
+                : "Layout & behaviour"}
+            </SectionHeading>
 
             <Stack
               direction={{ xs: "column", sm: "row" }}
@@ -371,7 +420,9 @@ function InspectorPanel() {
           <Divider />
 
           <Stack spacing={1.25}>
-            <SectionHeading>Field type</SectionHeading>
+            <SectionHeading>
+              {activeView === "analysis" ? "Field reference" : "Field type"}
+            </SectionHeading>
             <Stack direction="row" spacing={1} alignItems="center">
               {meta && (
                 <Box
@@ -406,7 +457,11 @@ function InspectorPanel() {
               <>
                 <Divider />
                 <Stack spacing={1.25}>
-                  <SectionHeading>Answer choices</SectionHeading>
+                  <SectionHeading>
+                    {activeView === "analysis"
+                      ? "Answer choices"
+                      : "Answer choices"}
+                  </SectionHeading>
                   <OptionsEditor
                     fieldId={field.id}
                     options={field.options}
@@ -417,7 +472,7 @@ function InspectorPanel() {
             )}
         </Stack>
       ) : (
-        <NoSelection />
+        <NoSelection activeView={activeView} />
       )}
     </PanelSection>
   );

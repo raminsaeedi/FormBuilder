@@ -32,7 +32,7 @@ import { fieldTypeMeta } from "../components/shared/fieldMeta";
 import { useBuilderStore } from "../store/builderStore";
 
 function App() {
-  const previewMode = useBuilderStore((state) => state.previewMode);
+  const activeView = useBuilderStore((state) => state.activeView);
   const form = useBuilderStore((state) => state.form);
   const addField = useBuilderStore((state) => state.addField);
   const moveField = useBuilderStore((state) => state.moveField);
@@ -134,51 +134,65 @@ function App() {
         <Container
           maxWidth={false}
           sx={{
-            maxWidth: 1640,
-            px: { xs: 2, md: 3.25, xl: 4.5 },
-            py: { xs: 2.75, md: 3.25 },
+            maxWidth: 1720,
+            px: { xs: 2, md: 3, xl: 4 },
+            py: { xs: 2.25, md: 2.75, xl: 3 },
           }}
         >
-          <Stack spacing={3.25}>
+          <Stack spacing={{ xs: 2.25, lg: 2.5 }}>
             <AppHeader />
 
-            {!previewMode && (
+            {activeView === "preview" && <PreviewPanel />}
+
+            {activeView === "builder" && (
               <Box
                 sx={{
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
-                    lg: "220px minmax(0, 1fr) 300px",
-                    xl: "240px minmax(0, 1fr) 320px",
+                    lg: "minmax(220px, 248px) minmax(0, 1fr) minmax(300px, 340px)",
+                    xl: "minmax(230px, 260px) minmax(0, 1fr) minmax(320px, 360px)",
                   },
-                  gap: { xs: 2.25, lg: 2.5, xl: 3 },
+                  gap: { xs: 2, lg: 2.25, xl: 2.5 },
                   alignItems: "start",
                 }}
               >
-                <Box id="field-library">
+                <Box id="field-library" sx={{ minWidth: 0 }}>
                   <FieldPalette />
                 </Box>
 
-                <FormCanvas />
+                <Box sx={{ minWidth: 0 }}>
+                  <FormCanvas />
+                </Box>
 
-                <Stack spacing={3.25}>
+                <Box sx={{ minWidth: 0 }}>
                   <InspectorPanel />
-                  <Box id="ux-analysis-panel">
-                    <UxAnalysisPanel />
-                  </Box>
-                </Stack>
+                </Box>
               </Box>
             )}
 
-            <Box
-              sx={{
-                transition: "opacity 200ms ease, transform 200ms ease",
-                opacity: previewMode ? 1 : 0.96,
-                transform: "translateY(0)",
-              }}
-            >
-              <PreviewPanel />
-            </Box>
+            {activeView === "analysis" && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    lg: "minmax(320px, 360px) minmax(0, 1fr)",
+                    xl: "minmax(340px, 380px) minmax(0, 1fr)",
+                  },
+                  gap: { xs: 2, lg: 2.25, xl: 2.5 },
+                  alignItems: "start",
+                }}
+              >
+                <Box sx={{ minWidth: 0 }}>
+                  <InspectorPanel />
+                </Box>
+
+                <Box id="ux-analysis-panel" sx={{ minWidth: 0 }}>
+                  <UxAnalysisPanel />
+                </Box>
+              </Box>
+            )}
           </Stack>
         </Container>
       </Box>

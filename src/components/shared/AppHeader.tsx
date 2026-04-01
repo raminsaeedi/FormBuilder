@@ -43,8 +43,8 @@ function ScoreBadge() {
 
 function AppHeader() {
   const form = useBuilderStore((s) => s.form);
-  const previewMode = useBuilderStore((s) => s.previewMode);
-  const togglePreviewMode = useBuilderStore((s) => s.togglePreviewMode);
+  const activeView = useBuilderStore((s) => s.activeView);
+  const setActiveView = useBuilderStore((s) => s.setActiveView);
   const loadTemplate = useBuilderStore((s) => s.loadTemplate);
   const resetToPrimaryTemplate = useBuilderStore(
     (s) => s.resetToPrimaryTemplate,
@@ -52,6 +52,9 @@ function AppHeader() {
 
   const formName = form.name;
   const fieldCount = form.fields.length;
+  const isPreviewView = activeView === "preview";
+  const isAnalysisView = activeView === "analysis";
+  const isBuilderView = activeView === "builder";
 
   return (
     <Box
@@ -90,17 +93,17 @@ function AppHeader() {
           position: "relative",
           zIndex: 1,
           px: { xs: 2, md: 2.75, xl: 3 },
-          py: { xs: 2, md: 2.5 },
+          py: { xs: 2, md: 2.25 },
         }}
       >
-        <Stack spacing={{ xs: 2.25, lg: 2.5 }}>
+        <Stack spacing={{ xs: 1.75, lg: 2 }}>
           <Stack
             direction={{ xs: "column", xl: "row" }}
-            spacing={{ xs: 2.25, xl: 3 }}
+            spacing={{ xs: 1.75, xl: 2.5 }}
             justifyContent="space-between"
             alignItems={{ xs: "flex-start", xl: "center" }}
           >
-            <Stack spacing={1.5} sx={{ minWidth: 0, maxWidth: 760 }}>
+            <Stack spacing={1.1} sx={{ minWidth: 0, maxWidth: 760 }}>
               <Stack
                 direction="row"
                 spacing={0.75}
@@ -124,23 +127,29 @@ function AppHeader() {
               </Stack>
 
               <Box sx={{ minWidth: 0 }}>
-                <Typography variant="h4" sx={{ mb: 0.5 }}>
-                  Build forms with clearer structure and lower UX friction
+                <Typography variant="h4" sx={{ mb: 0.35 }}>
+                  {isAnalysisView
+                    ? "Review UX issues with focused analysis"
+                    : isPreviewView
+                      ? "Preview the form in a dedicated view"
+                      : "Build forms with clearer structure and lower UX friction"}
                 </Typography>
                 <Typography
                   variant="body2"
                   color="text.secondary"
-                  sx={{ maxWidth: 680, lineHeight: 1.7 }}
+                  sx={{ maxWidth: 680, lineHeight: 1.65 }}
                 >
-                  Design the form structure, inspect field behaviour, review the
-                  rendered preview and validate usability signals in one
-                  balanced workspace.
+                  {isAnalysisView
+                    ? "Use the field settings on the left to refine the selected field while reviewing UX findings on the right."
+                    : isPreviewView
+                      ? "Inspect the rendered form in isolation without the builder workspace competing for attention."
+                      : "Design the form structure, inspect field behaviour, review the rendered preview and validate usability signals in one balanced workspace."}
                 </Typography>
               </Box>
 
               <Stack
                 direction={{ xs: "column", sm: "row" }}
-                spacing={{ xs: 0.75, sm: 1.5 }}
+                spacing={{ xs: 0.6, sm: 1.25 }}
                 alignItems={{ xs: "flex-start", sm: "center" }}
               >
                 <Stack direction="row" spacing={0.75} alignItems="center">
@@ -159,13 +168,17 @@ function AppHeader() {
                 </Stack>
 
                 <Typography variant="caption" color="text.disabled">
-                  Builder, preview and analysis stay in sync as you edit.
+                  {isAnalysisView
+                    ? "Analysis view keeps settings and findings side by side."
+                    : isPreviewView
+                      ? "Preview view keeps the rendered form fully focused."
+                      : "Builder view keeps palette, canvas and settings visible together."}
                 </Typography>
               </Stack>
             </Stack>
 
             <Stack
-              spacing={1.5}
+              spacing={1.1}
               sx={{ width: { xs: "100%", xl: "auto" }, minWidth: { xl: 420 } }}
               alignItems={{ xs: "stretch", xl: "flex-end" }}
             >
@@ -176,44 +189,49 @@ function AppHeader() {
               >
                 <Tooltip
                   title={
-                    previewMode
-                      ? "Switch back to the builder canvas"
-                      : "See how the form looks to end users"
+                    isPreviewView
+                      ? "Switch back to the builder view"
+                      : "Open the dedicated preview view"
                   }
                   arrow
                 >
                   <Button
-                    variant={previewMode ? "contained" : "outlined"}
+                    variant={isPreviewView ? "contained" : "outlined"}
                     startIcon={
-                      previewMode ? (
+                      isPreviewView ? (
                         <VisibilityOffRoundedIcon />
                       ) : (
                         <VisibilityRoundedIcon />
                       )
                     }
-                    onClick={togglePreviewMode}
-                    color={previewMode ? "primary" : "inherit"}
+                    onClick={() =>
+                      setActiveView(isPreviewView ? "builder" : "preview")
+                    }
+                    color={isPreviewView ? "primary" : "inherit"}
                     sx={{ minWidth: 148 }}
                   >
-                    {previewMode ? "Exit preview" : "Preview form"}
+                    {isPreviewView ? "Exit preview" : "Preview form"}
                   </Button>
                 </Tooltip>
 
-                <Tooltip title="Jump to the UX analysis panel" arrow>
+                <Tooltip
+                  title={
+                    isAnalysisView
+                      ? "Switch back to the builder view"
+                      : "Open the dedicated analysis view"
+                  }
+                  arrow
+                >
                   <Button
-                    variant="outlined"
+                    variant={isAnalysisView ? "contained" : "outlined"}
                     startIcon={<InsightsRoundedIcon />}
-                    onClick={() => {
-                      document
-                        .getElementById("ux-analysis-panel")
-                        ?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                    }}
+                    onClick={() =>
+                      setActiveView(isAnalysisView ? "builder" : "analysis")
+                    }
+                    color={isAnalysisView ? "primary" : "inherit"}
                     sx={{ minWidth: 148 }}
                   >
-                    View analysis
+                    {isAnalysisView ? "Exit analysis" : "View analysis"}
                   </Button>
                 </Tooltip>
 
@@ -222,12 +240,17 @@ function AppHeader() {
                   arrow
                 >
                   <Button
-                    variant="contained"
+                    variant={isBuilderView ? "contained" : "outlined"}
                     startIcon={<AddCircleOutlineRoundedIcon />}
                     onClick={() => {
-                      document.getElementById("field-library")?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "start",
+                      setActiveView("builder");
+                      requestAnimationFrame(() => {
+                        document
+                          .getElementById("field-library")
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start",
+                          });
                       });
                     }}
                     sx={{ minWidth: 132 }}
@@ -237,84 +260,89 @@ function AppHeader() {
                 </Tooltip>
               </Stack>
 
-              <Box
-                sx={{
-                  width: "100%",
-                  borderRadius: "18px",
-                  border: "1px solid",
-                  borderColor: alpha("#0f172a", 0.08),
-                  bgcolor: alpha("#f8fafc", 0.82),
-                  px: 1.25,
-                  py: 1.1,
-                }}
-              >
-                <Stack spacing={1}>
-                  <Stack
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    spacing={1}
-                  >
-                    <Typography variant="overline" color="text.secondary">
-                      Templates
-                    </Typography>
-                    <Typography variant="caption" color="text.disabled">
-                      Quick starting points
-                    </Typography>
-                  </Stack>
-
-                  <Divider />
-
-                  <Stack
-                    direction="row"
-                    spacing={0.75}
-                    flexWrap="wrap"
-                    useFlexGap
-                  >
-                    <Tooltip title="Restore the default signup demo form" arrow>
-                      <Button
-                        variant="text"
-                        size="small"
-                        startIcon={<RestartAltRoundedIcon />}
-                        onClick={resetToPrimaryTemplate}
-                        sx={{ color: "text.secondary" }}
-                      >
-                        Signup demo
-                      </Button>
-                    </Tooltip>
-
-                    <Tooltip
-                      title="Load a checkout form with realistic UX pain points"
-                      arrow
+              {!isAnalysisView && (
+                <Box
+                  sx={{
+                    width: "100%",
+                    borderRadius: "18px",
+                    border: "1px solid",
+                    borderColor: alpha("#0f172a", 0.08),
+                    bgcolor: alpha("#f8fafc", 0.82),
+                    px: 1.25,
+                    py: 1.1,
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Stack
+                      direction="row"
+                      justifyContent="space-between"
+                      alignItems="center"
+                      spacing={1}
                     >
-                      <Button
-                        variant="text"
-                        size="small"
-                        startIcon={<DashboardCustomizeRoundedIcon />}
-                        onClick={() => loadTemplate(templates[1])}
-                        sx={{ color: "text.secondary" }}
-                      >
-                        Checkout
-                      </Button>
-                    </Tooltip>
+                      <Typography variant="overline" color="text.secondary">
+                        Templates
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled">
+                        Quick starting points
+                      </Typography>
+                    </Stack>
 
-                    <Tooltip
-                      title="Load a support form with intentional UX issues"
-                      arrow
+                    <Divider />
+
+                    <Stack
+                      direction="row"
+                      spacing={0.75}
+                      flexWrap="wrap"
+                      useFlexGap
                     >
-                      <Button
-                        variant="text"
-                        size="small"
-                        color="error"
-                        startIcon={<BugReportRoundedIcon />}
-                        onClick={() => loadTemplate(templates[2])}
+                      <Tooltip
+                        title="Restore the default signup demo form"
+                        arrow
                       >
-                        UX stress test
-                      </Button>
-                    </Tooltip>
+                        <Button
+                          variant="text"
+                          size="small"
+                          startIcon={<RestartAltRoundedIcon />}
+                          onClick={resetToPrimaryTemplate}
+                          sx={{ color: "text.secondary" }}
+                        >
+                          Signup demo
+                        </Button>
+                      </Tooltip>
+
+                      <Tooltip
+                        title="Load a checkout form with realistic UX pain points"
+                        arrow
+                      >
+                        <Button
+                          variant="text"
+                          size="small"
+                          startIcon={<DashboardCustomizeRoundedIcon />}
+                          onClick={() => loadTemplate(templates[1])}
+                          sx={{ color: "text.secondary" }}
+                        >
+                          Checkout
+                        </Button>
+                      </Tooltip>
+
+                      <Tooltip
+                        title="Load a support form with intentional UX issues"
+                        arrow
+                      >
+                        <Button
+                          variant="text"
+                          size="small"
+                          color="error"
+                          startIcon={<BugReportRoundedIcon />}
+                          onClick={() => loadTemplate(templates[2])}
+                        >
+                          UX stress test
+                        </Button>
+                      </Tooltip>
+                    </Stack>
                   </Stack>
-                </Stack>
-              </Box>
+                </Box>
+              )}
             </Stack>
           </Stack>
         </Stack>

@@ -25,11 +25,14 @@ export type FieldPatch = Partial<
   }
 >;
 
+export type AppView = "builder" | "analysis" | "preview";
+
 interface BuilderState {
   form: FormDefinition;
   selectedFieldId: string | null;
   previewFieldValues: PreviewFieldState;
   previewMode: boolean;
+  activeView: AppView;
   viewportMode: "desktop" | "mobile";
   analysisResult: AnalysisResult;
   setForm: (form: FormDefinition) => void;
@@ -45,6 +48,7 @@ interface BuilderState {
   resetPreviewFieldValues: () => void;
   togglePreviewMode: () => void;
   setPreviewMode: (active: boolean) => void;
+  setActiveView: (view: AppView) => void;
   setViewportMode: (mode: "desktop" | "mobile") => void;
 }
 
@@ -107,13 +111,19 @@ const buildStateFromForm = (
   overrides?: Partial<
     Pick<
       BuilderState,
-      "selectedFieldId" | "previewMode" | "previewFieldValues" | "viewportMode"
+      | "selectedFieldId"
+      | "previewMode"
+      | "previewFieldValues"
+      | "viewportMode"
+      | "activeView"
     >
   >,
 ) => ({
   form,
   selectedFieldId: overrides?.selectedFieldId ?? form.fields[0]?.id ?? null,
   previewMode: overrides?.previewMode ?? false,
+  activeView:
+    overrides?.activeView ?? (overrides?.previewMode ? "preview" : "builder"),
   viewportMode: overrides?.viewportMode ?? "desktop",
   previewFieldValues:
     overrides?.previewFieldValues ?? buildPreviewFieldValues(form),
@@ -334,6 +344,7 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   selectedFieldId: initialForm.fields[0]?.id ?? null,
   previewFieldValues: buildPreviewFieldValues(initialForm),
   previewMode: false,
+  activeView: "builder",
   viewportMode: "desktop",
   analysisResult: resolveAnalysis(initialForm),
 
@@ -341,17 +352,28 @@ export const useBuilderStore = create<BuilderState>((set) => ({
     set(
       buildStateFromForm(form, {
         previewMode: false,
+        activeView: "builder",
       }),
     ),
 
   loadTemplate: (template) => {
     const form = cloneTemplate(template);
-    set(buildStateFromForm(form));
+    set(
+      buildStateFromForm(form, {
+        activeView: "builder",
+        previewMode: false,
+      }),
+    );
   },
 
   resetToPrimaryTemplate: () => {
     const form = cloneTemplate(templates[0]);
-    set(buildStateFromForm(form));
+    set(
+      buildStateFromForm(form, {
+        activeView: "builder",
+        previewMode: false,
+      }),
+    );
   },
 
   selectField: (fieldId) => set({ selectedFieldId: fieldId }),
@@ -464,9 +486,25 @@ export const useBuilderStore = create<BuilderState>((set) => ({
     })),
 
   togglePreviewMode: () =>
-    set((state) => ({ previewMode: !state.previewMode })),
+    set((state) => {
+      const nextPreviewMode = !state.previewMode;
+      return {
+        previewMode: nextPreviewMode,
+        activeView: nextPreviewMode ? "preview" : "builder",
+      };
+    }),
 
-  setPreviewMode: (active) => set({ previewMode: active }),
+  setPreviewMode: (active) =>
+    set({
+      previewMode: active,
+      activeView: active ? "preview" : "builder",
+    }),
+
+  setActiveView: (view) =>
+    set({
+      activeView: view,
+      previewMode: view === "preview",
+    }),
 
   setViewportMode: (mode) => set({ viewportMode: mode }),
 }));
