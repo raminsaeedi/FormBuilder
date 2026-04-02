@@ -661,46 +661,15 @@ const BuilderFieldCard = memo(function BuilderFieldCard({
 
           <FieldPreview field={field} />
 
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            spacing={1}
-            sx={{ mt: 1.2 }}
+          <Typography
+            variant="caption"
+            color={isOver ? "primary.main" : "text.disabled"}
+            sx={{ display: "block", mt: 1.2 }}
           >
-            <Typography
-              variant="caption"
-              color={isOver ? "primary.main" : "text.disabled"}
-            >
-              {isOver
-                ? "Release now to place the dragged field here."
-                : "Use the drag handle to reorder, or open the inspector to refine this field."}
-            </Typography>
-
-            <Tooltip title="Remove this field" arrow>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onDelete();
-                }}
-                aria-label="Remove this field"
-                sx={{
-                  borderRadius: 1,
-                  border: "1px solid",
-                  borderColor: alpha("#ef4444", 0.16),
-                  bgcolor: alpha("#ef4444", 0.05),
-                  "&:hover": {
-                    bgcolor: alpha("#ef4444", 0.1),
-                    borderColor: alpha("#ef4444", 0.24),
-                  },
-                }}
-              >
-                <DeleteOutlineRoundedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          </Stack>
+            {isOver
+              ? "Release now to place the dragged field here."
+              : "Use the drag handle to reorder, or open the inspector to refine this field."}
+          </Typography>
         </Box>
       </Stack>
     </Box>
