@@ -1,20 +1,20 @@
+<div align="center">
+
 # Smart Form Builder
 
 Design better forms with a visual workspace built for speed, clarity, and confident iteration.
 
-![Product Hero](docs/images/product-hero.png)
+![Product Overview](docs/images/product-overview.png)
 
-Smart Form Builder is a modern form design experience that brings structure editing, field configuration, live preview, and UX feedback into one focused interface. It helps teams shape forms faster, keep experiences consistent, and review usability before implementation.
+</div>
 
----
+Smart Form Builder is a modern form design experience that combines visual structure editing, field configuration, live preview, and UX feedback in one focused interface. It helps teams create forms faster, maintain consistency, and review usability before implementation.
 
-## Why Smart Form Builder
+## Overview
 
-Building high-quality forms usually means switching between planning, editing, previewing, and reviewing. Smart Form Builder brings those steps together in a single product experience so teams can move from idea to polished form with less friction.
+Building high-quality forms often requires switching between planning, editing, previewing, and reviewing. Smart Form Builder brings these steps together in a single product experience so teams can move from idea to polished form with less friction.
 
 It is designed for product teams, designers, frontend teams, and internal platform owners who want a more visual and efficient way to create form experiences.
-
----
 
 ## Product Highlights
 
@@ -25,8 +25,6 @@ It is designed for product teams, designers, frontend teams, and internal platfo
 - **UX analysis panel** with quality signals and recommendations
 - **Fast iteration workflow** for testing structure and content decisions in real time
 - **Modern interface** built for a clean, focused product experience
-
----
 
 ## Product Experience
 
@@ -46,63 +44,37 @@ Switch to preview mode to validate the form experience before handoff or impleme
 
 Analyze the form with built-in scoring and recommendations that help identify opportunities to improve clarity and usability.
 
----
-
 ## Screenshots
-
-Add product images to [`docs/images/`](docs/images/) and replace the placeholders below with real screenshots.
 
 ### Product Overview
 
 ![Product Overview](docs/images/product-overview.png)
 
-Recommended image content:
-
-- full workspace view
-- field library, canvas, and inspector visible together
-- polished default state of the product
+A complete view of the workspace with the field library, builder canvas, and inspector panel presented together.
 
 ### Builder Canvas
 
 ![Builder Canvas](docs/images/builder-canvas.png)
 
-Recommended image content:
-
-- drag-and-drop interaction in progress
-- field cards arranged in the canvas
-- clear visual hierarchy of the builder area
+The central form-building area where fields can be arranged, reordered, and removed through direct manipulation.
 
 ### Field Configuration
 
 ![Field Configuration](docs/images/field-configuration.png)
 
-Recommended image content:
-
-- inspector panel editing a selected field
-- label, placeholder, and required settings visible
-- product detail and control depth
+The inspector experience for refining labels, placeholders, helper text, layout width, and required settings.
 
 ### Live Preview
 
 ![Live Preview](docs/images/live-preview.png)
 
-Recommended image content:
-
-- rendered form preview
-- desktop or mobile viewport state
-- realistic end-user form experience
+A rendered preview of the form experience, helping teams validate structure and readability before delivery.
 
 ### UX Analysis
 
 ![UX Analysis](docs/images/ux-analysis.png)
 
-Recommended image content:
-
-- score cards and recommendations
-- analysis summary panel
-- quality insights presented clearly
-
----
+A dedicated analysis view with score cards and recommendations to support better usability decisions.
 
 ## Core Capabilities
 
@@ -122,8 +94,6 @@ Changes made in the builder can be reviewed immediately in preview and analysis 
 
 The current experience provides a strong base for future capabilities such as templates, persistence, validation rules, collaboration, and AI-assisted suggestions.
 
----
-
 ## Ideal Use Cases
 
 - Internal tools that need a configurable form builder experience
@@ -132,15 +102,11 @@ The current experience provides a strong base for future capabilities such as te
 - Admin platforms that require flexible form composition
 - Prototypes and MVPs for workflow-heavy applications
 
----
-
 ## Technology Foundation
 
 Smart Form Builder is implemented with a modern frontend stack centered on [`React`](package.json), [`TypeScript`](package.json), [`Vite`](package.json), [`MUI`](package.json), [`Zustand`](package.json), and [`dnd-kit`](package.json).
 
 This repository currently represents the frontend product experience and can serve as a strong base for expansion into a full platform.
-
----
 
 ## Getting Started
 
@@ -169,36 +135,13 @@ npm run build
 
 Available scripts are defined in [`package.json`](package.json).
 
----
-
-## Repository Assets
-
-Suggested image structure:
-
-```text
-docs/
-└── images/
-    ├── product-hero.png
-    ├── product-overview.png
-    ├── builder-canvas.png
-    ├── field-configuration.png
-    ├── live-preview.png
-    └── ux-analysis.png
-```
-
----
-
 ## Architecture Reference
 
 For implementation and project structure details, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
----
-
 ## License
 
 This project is licensed under [`LICENSE`](LICENSE).
-
----
 
 ## Suggested Repository Description
 
