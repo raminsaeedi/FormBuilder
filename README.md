@@ -1,128 +1,144 @@
 # Smart Form Builder
 
-A polished frontend prototype for designing forms visually, editing field settings, previewing the result, and reviewing UX quality signals in one workspace.
+Design better forms with a visual workspace built for speed, clarity, and confident iteration.
 
-## Overview
+![Product Hero](docs/images/product-hero.png)
 
-Smart Form Builder is a single-page form design application built with [`React`](package.json), [`TypeScript`](package.json), [`Vite`](package.json), [`MUI`](package.json), [`Zustand`](package.json), and [`dnd-kit`](package.json). It focuses on a clean builder experience with drag-and-drop field management, a live preview, and a lightweight UX analysis panel.
-
-This repository is ideal as:
-
-- a frontend prototype for a larger form platform
-- a UI foundation for internal tools
-- a reference project for builder-style interfaces
-- a starting point for advanced form generation workflows
+Smart Form Builder is a modern form design experience that brings structure editing, field configuration, live preview, and UX feedback into one focused interface. It helps teams shape forms faster, keep experiences consistent, and review usability before implementation.
 
 ---
 
-## Features
+## Why Smart Form Builder
 
-- Visual form builder with draggable field cards
-- Field palette for quickly adding new inputs
-- Reordering inside the canvas with drag and drop
-- Delete by dragging a field outside the canvas area
-- Inspector panel for editing field properties
-- Live preview mode for the generated form
-- UX analysis panel with score and recommendations
-- Responsive dashboard layout for builder, preview, and analysis workflows
-- Clean component structure and centralized state management
+Building high-quality forms usually means switching between planning, editing, previewing, and reviewing. Smart Form Builder brings those steps together in a single product experience so teams can move from idea to polished form with less friction.
+
+It is designed for product teams, designers, frontend teams, and internal platform owners who want a more visual and efficient way to create form experiences.
 
 ---
 
-## Product Screenshots
+## Product Highlights
 
-Add your screenshots to a folder such as [`docs/images/`](docs/images/) and replace the placeholder paths below.
+- **Visual drag-and-drop builder** for arranging form fields quickly
+- **Central canvas workspace** for structuring forms with clarity
+- **Inspector-driven editing** for labels, placeholders, help text, width, and required states
+- **Live preview** to review the form as users would experience it
+- **UX analysis panel** with quality signals and recommendations
+- **Fast iteration workflow** for testing structure and content decisions in real time
+- **Modern interface** built for a clean, focused product experience
 
-### Builder Workspace
+---
 
-![Builder Workspace](docs/images/builder-workspace.png)
+## Product Experience
 
-Suggested content:
+### Build Visually
 
-- field palette on the left
-- canvas in the center
-- inspector on the right
+Create and organize forms in a central canvas using intuitive drag-and-drop interactions. Add fields, reorder them instantly, and remove them naturally by dragging them out of the canvas area.
 
-### Drag and Drop Canvas
+### Refine Every Field
 
-![Drag and Drop Canvas](docs/images/drag-and-drop-canvas.png)
+Use the inspector to adjust field details without breaking your flow. Update labels, helper text, placeholders, layout width, and required settings from one dedicated editing panel.
 
-Suggested content:
+### Preview Before Delivery
 
-- dragging a field inside the canvas
-- reordering cards
-- deleting by dragging outside the canvas
+Switch to preview mode to validate the form experience before handoff or implementation. This makes it easier to review structure, readability, and overall flow.
+
+### Review UX Quality
+
+Analyze the form with built-in scoring and recommendations that help identify opportunities to improve clarity and usability.
+
+---
+
+## Screenshots
+
+Add product images to [`docs/images/`](docs/images/) and replace the placeholders below with real screenshots.
+
+### Product Overview
+
+![Product Overview](docs/images/product-overview.png)
+
+Recommended image content:
+
+- full workspace view
+- field library, canvas, and inspector visible together
+- polished default state of the product
+
+### Builder Canvas
+
+![Builder Canvas](docs/images/builder-canvas.png)
+
+Recommended image content:
+
+- drag-and-drop interaction in progress
+- field cards arranged in the canvas
+- clear visual hierarchy of the builder area
+
+### Field Configuration
+
+![Field Configuration](docs/images/field-configuration.png)
+
+Recommended image content:
+
+- inspector panel editing a selected field
+- label, placeholder, and required settings visible
+- product detail and control depth
 
 ### Live Preview
 
 ![Live Preview](docs/images/live-preview.png)
 
-Suggested content:
+Recommended image content:
 
 - rendered form preview
-- desktop or mobile viewport mode
+- desktop or mobile viewport state
+- realistic end-user form experience
 
-### UX Analysis Panel
+### UX Analysis
 
-![UX Analysis Panel](docs/images/ux-analysis.png)
+![UX Analysis](docs/images/ux-analysis.png)
 
-Suggested content:
+Recommended image content:
 
-- score cards
-- warnings or recommendations
-- analysis summary
-
-### Inspector Panel
-
-![Inspector Panel](docs/images/inspector-panel.png)
-
-Suggested content:
-
-- label editing
-- placeholder/help text editing
-- width and required toggles
+- score cards and recommendations
+- analysis summary panel
+- quality insights presented clearly
 
 ---
 
-## Tech Stack
+## Core Capabilities
 
-- [`React`](package.json)
-- [`TypeScript`](package.json)
-- [`Vite`](package.json)
-- [`MUI`](package.json)
-- [`Zustand`](package.json)
-- [`@dnd-kit/core`](package.json)
-- [`@dnd-kit/sortable`](package.json)
+### Visual Form Composition
+
+Smart Form Builder enables teams to assemble forms through a direct manipulation interface instead of relying only on raw configuration.
+
+### Structured Editing Workflow
+
+The product separates building, editing, previewing, and reviewing into clear interface zones that support faster decision-making.
+
+### Real-Time Feedback Loop
+
+Changes made in the builder can be reviewed immediately in preview and analysis views, helping teams iterate with more confidence.
+
+### Scalable Product Foundation
+
+The current experience provides a strong base for future capabilities such as templates, persistence, validation rules, collaboration, and AI-assisted suggestions.
 
 ---
 
-## Project Structure
+## Ideal Use Cases
 
-```text
-src/
-├── app/                # App shell and theme setup
-├── components/
-│   ├── analysis/       # UX analysis panels and score cards
-│   ├── builder/        # Canvas, field cards, palette, drag-and-drop helpers
-│   ├── inspector/      # Field settings editor
-│   ├── preview/        # Live form preview
-│   └── shared/         # Reusable UI building blocks
-├── data/               # Mock templates and field catalog
-├── store/              # Zustand state store
-├── styles/             # Global styles
-├── types/              # Shared TypeScript types
-└── utils/              # Analysis and helper logic
-```
+- Internal tools that need a configurable form builder experience
+- Product teams exploring form workflows before backend integration
+- Design system teams validating form patterns and usability
+- Admin platforms that require flexible form composition
+- Prototypes and MVPs for workflow-heavy applications
 
-Key files:
+---
 
-- [`src/app/App.tsx`](src/app/App.tsx) — main application shell and DnD orchestration
-- [`src/components/builder/BuilderCanvas.tsx`](src/components/builder/BuilderCanvas.tsx) — central form canvas
-- [`src/components/builder/BuilderFieldCard.tsx`](src/components/builder/BuilderFieldCard.tsx) — draggable field card UI
-- [`src/components/inspector/InspectorPanel.tsx`](src/components/inspector/InspectorPanel.tsx) — field configuration panel
-- [`src/components/preview/PreviewPanel.tsx`](src/components/preview/PreviewPanel.tsx) — live preview experience
-- [`src/components/analysis/UxAnalysisPanel.tsx`](src/components/analysis/UxAnalysisPanel.tsx) — UX scoring and recommendations
-- [`src/store/builderStore.ts`](src/store/builderStore.ts) — centralized builder state
+## Technology Foundation
+
+Smart Form Builder is implemented with a modern frontend stack centered on [`React`](package.json), [`TypeScript`](package.json), [`Vite`](package.json), [`MUI`](package.json), [`Zustand`](package.json), and [`dnd-kit`](package.json).
+
+This repository currently represents the frontend product experience and can serve as a strong base for expansion into a full platform.
 
 ---
 
@@ -130,132 +146,60 @@ Key files:
 
 ### Prerequisites
 
-Make sure you have installed:
-
 - Node.js 18+
 - npm 9+
 
-### Installation
+### Install
 
 ```bash
 npm install
 ```
 
-### Run in Development
+### Run Locally
 
 ```bash
 npm run dev
 ```
 
-### Build for Production
+### Build
 
 ```bash
 npm run build
-```
-
-### Preview the Production Build
-
-```bash
-npm run preview
 ```
 
 Available scripts are defined in [`package.json`](package.json).
 
 ---
 
-## How It Works
+## Repository Assets
 
-### 1. Add Fields
-
-Use the field palette to insert new form elements into the canvas.
-
-### 2. Reorder Fields
-
-Drag cards within the canvas to change the form structure.
-
-### 3. Delete Fields
-
-Drag a card outside the central canvas area to remove it from the form.
-
-### 4. Edit Properties
-
-Select a field and update its label, placeholder, help text, width, and required state in the inspector.
-
-### 5. Preview the Result
-
-Switch to preview mode to see how the form looks as an end user would experience it.
-
-### 6. Review UX Quality
-
-Open the analysis view to inspect score cards and recommendations generated from the current form structure.
-
----
-
-## Architecture Notes
-
-The app follows a feature-oriented structure and keeps state centralized in [`builderStore.ts`](src/store/builderStore.ts). The UI is split into clear functional areas:
-
-- **Builder** for structure and drag-and-drop editing
-- **Inspector** for field configuration
-- **Preview** for rendered output
-- **Analysis** for UX feedback
-
-This makes the project easy to extend with features such as:
-
-- backend persistence
-- template import/export
-- validation rules
-- multi-page forms
-- collaboration features
-- AI-assisted form suggestions
-
-For a deeper architectural overview, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
-
----
-
-## Suggested Screenshot Folder
-
-A practical structure for repository assets:
+Suggested image structure:
 
 ```text
 docs/
 └── images/
-    ├── builder-workspace.png
-    ├── drag-and-drop-canvas.png
+    ├── product-hero.png
+    ├── product-overview.png
+    ├── builder-canvas.png
+    ├── field-configuration.png
     ├── live-preview.png
-    ├── ux-analysis.png
-    └── inspector-panel.png
+    └── ux-analysis.png
 ```
 
 ---
 
-## Roadmap Ideas
+## Architecture Reference
 
-- Save and load custom form definitions
-- Export forms as JSON schema or configuration
-- Add validation rule editing
-- Add multi-step form support
-- Add undo/redo history
-- Add keyboard accessibility improvements for drag-and-drop
-- Add automated tests for builder interactions
-- Add backend integration for persistence
-
----
-
-## Development Notes
-
-- The project currently uses mock data from [`src/data/mockForm.ts`](src/data/mockForm.ts) and [`src/data/mockAnalysis.ts`](src/data/mockAnalysis.ts).
-- UX scoring logic is implemented in [`src/utils/analysis.ts`](src/utils/analysis.ts).
-- Drag-and-drop helpers are located in [`src/components/builder/dnd.ts`](src/components/builder/dnd.ts).
+For implementation and project structure details, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ---
 
 ## License
 
-This project is licensed under the terms described in [`LICENSE`](LICENSE).
+This project is licensed under [`LICENSE`](LICENSE).
 
 ---
 
-## Repository Description Suggestion
+## Suggested Repository Description
 
-A modern React-based smart form builder with drag-and-drop editing, live preview, and UX analysis.
+A modern visual form builder with drag-and-drop editing, live preview, and UX analysis in one product experience.
